@@ -1,9 +1,0 @@
-dep_tristate '  Alps BSRV2 (QPSK)' CONFIG_DVB_ALPS_BSRV2
-dep_tristate '  Alps TDLB7 (OFDM)' CONFIG_DVB_ALPS_TDLB7
-dep_tristate '  Alps TDMB7 (OFDM)' CONFIG_DVB_ALPS_TDMB7
-dep_tristate '  Grundig 29504-491 (QPSK)' CONFIG_DVB_GRUNDIG_29504_491
-dep_tristate '  Grundig 29504-401 (OFDM)' CONFIG_DVB_GRUNDIG_29504_401
-dep_tristate '  Stv0299 based frontends (QPSK)' CONFIG_DVB_STV0299
-dep_tristate '  frontends with external VES1820 demodulator (QAM)' CONFIG_DVB_VES1820
-dep_tristate '  Philips TDA10045h (OFDM)' CONFIG_DVB_TDA10045H
-

@@ -1,2 +1,0 @@
-#define I2C_DRIVERID_ADV717X 0xf000
-

@@ -1,1 +1,0 @@
-dep_tristate '  FlexCop II based Technisat Skystar2 budget cards' CONFIG_SKYSTAR2_DVB

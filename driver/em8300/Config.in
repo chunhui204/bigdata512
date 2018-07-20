@@ -1,1 +1,0 @@
-dep_tristate '  em8300 based cards' CONFIG_EM8300_DVB $CONFIG_I2C 

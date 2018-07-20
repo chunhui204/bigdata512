@@ -1,5 +1,0 @@
-#!/bin/sh
-mknod /dev/em8300 c 121 0 
-mknod /dev/em8300_mv c 121 1 
-mknod /dev/em8300_ma c 121 2 
-mknod /dev/em8300_sp c 121 3
