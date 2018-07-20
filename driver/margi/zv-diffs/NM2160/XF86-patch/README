@@ -1,0 +1,43 @@
+            ZV port patch for NeoMagic NM2160
+
+2002,2.5.  ver 0.3   rename NEOGetVideo to NEOPutVideo
+2002,2.4.  ver 0.2   bugfix
+2002,2.3.  ver 0.1   1st release
+
+1. Abstract
+  This patch adds the following function to NeoMagic driver in
+  XFree86-4.1.0. (NM2160 only)
+
+   - Overlay plane (Xv extension)
+   - Show the video from ZV port
+
+  This codes are based on other drivers. (Siliconmotion, chips, etc.)
+
+2. Test system
+  I tested this patch on the following system.
+
+  Machine:  Toshiba Libretto100
+     Graphics: NeoMagic NM2160
+     Sound   : YAMAHA   YMF715(OPL3SA2)
+     PCIC    : Toshiba  ToPIC97
+  OS: Linux-2.4.17
+  X : XFree86-4.1.0
+  Depth: 16bpp
+
+3. How to apply this patch
+
+  cd xc/program/Xserver/hw/xfree86/drivers/neomagic
+  patch -p1 -s < neomagic.diff
+  make
+  make install
+ 
+4. Utility
+  - zv-monitor
+    Open a ZV window.
+    If there is a video stream from ZV port, it appears on this
+    window.
+    Please make and run zv-monitor. (No argument required.)
+  (note) You can use XawTv too.
+
+
+s.nomura@mba.nifty.ne.jp

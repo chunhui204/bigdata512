@@ -1,0 +1,56 @@
+Configuration:
+
+- You must have the kernel sources for the kernel you are actually using
+  installed, and symlinked to /lib/modules/$(KERNEL_VERSION)/build.
+  Otherwise, change the path for KERNEL_LOCATION in DVB/driver/Makefile.
+
+- Make sure that your kernel has enabled: 
+
+    Video4Linux Support (CONFIG_VIDEO_DEV)
+      needed by cards with integrated MPEG decoder to display video on screen
+ 
+    Input Core Support (CONFIG_INPUT)
+    Event Device Support (CONFIG_INPUT_EVDEV)
+      needed by the DVB remote control driver
+
+- Login as root, change to the directory DVB and type "make".
+  This will build the drivers and all utility and test programs.
+
+- If everything compiled without errors, cd to DVB/drivers and
+  type "make insmod" to load the modules. Depending on your hardware
+  you may append a "CARDS=av7110" or "CARDS=b2c2" to the "make insmod"
+  command line to avoid loading unnecessary drivers (optional).
+  During the installation of the modules your PC can "hang" for a
+  few seconds. This happens during the loading of the ARM application
+  ("firmware") into the DRAM of the AV7110 and is "normal".
+
+  If the drivers work you can install them permanently using "make install".
+  See drivers/modules.conf for some hints how to enable autoloading.
+
+- If you don't use devfs, execute DVB/driver/makedev.napi to create
+  the device nodes; if you use devfsd, copy drivers/devfsd.conf to
+  /etc/devfs/conf.d/dvb (exeact location might depend on you distribution).
+
+- apps/szap/ contains three simple applications for zapping with
+  DVB-S, DVB-C or DVB-T cards (szap/czap/tzap); read the comments in
+  apps/szap/szap.c for instructions.
+  Note 1: tuning succeeded if you see the FE_HAS_LOCK flag and "status 1f";
+  	  a good signal has a low bit error rate (ber) and zero
+	  uncorrectable packets (unc).
+  Note 2: you must keep ?zap running, or the frontend will go to sleep
+          (unless you load dvb-core.o with dvb_shutdown_timeout=0)
+
+- If your card has a hardware MPEG decoder you can watch TV
+  with xawtv (together with e.g. szap for DVB tuning);
+  Note: xawtv cannot control the DVB tuner, you must use ?zap
+
+- For cards without hardware MPEG decoder you need a software
+  MPEG decoder, e.g. mplayer or xine (you need *very* recent versions
+  which understand MPEG2 transport streams; xine v0.9.21 and
+  mplayer dev-CVS-030723-16:39-3.3.1 seem to work);
+  Note: You must run ?zap with the -r flag to enable stream output to
+        the dvr device, and keep it running while watching tv.
+  Examples:
+    mplayer - < /dev/dvb/adapter0/dvr0
+    xine stdin://mpeg2 < /dev/dvb/adapter0/dvr0
+

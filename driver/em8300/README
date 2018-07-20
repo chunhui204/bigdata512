@@ -1,0 +1,18 @@
+This is the first attempt at wrapping the em8300 driver (hoolywood
+plus/drx3) with the DVB API. Right now it doesn't work very well and
+may cause your system to CRASH. You also need to get the microcode
+from your windows drivers (see http://dxr3.sourceforge.net/ on how to
+do this) and put it into the microcode directory. Also edit the
+Makefile so that the correct microcode is loaded (right now it will
+load microcode/microcode0.bin). You also need to set the correct
+module parameters for adv717x.o and  em8300.o. See the instructions on
+ http://dxr3.sourceforge.net/ on how to do that.
+The entire project is still in a very early stage. Since I don't have
+much time for it, I release this code so that interested people may
+work on it. Note that all the files in the modules directory are the
+unchanged original driver files from the sourceforge project, although
+they are not the latest version.
+Don't forget that you also need the file em8300.h in
+DVB/include/linux/.
+
+If you have questions please contact me at mocm@metzlerbros.de.

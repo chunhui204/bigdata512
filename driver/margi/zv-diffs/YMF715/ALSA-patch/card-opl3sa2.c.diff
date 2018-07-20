@@ -1,0 +1,69 @@
+--- card-opl3sa2.c.org	Sun Feb  3 15:38:12 2002
++++ card-opl3sa2.c	Sun Feb  3 15:38:12 2002
+@@ -55,6 +55,7 @@
+ int snd_dma1_size[SND_CARDS] = SND_DEFAULT_DMA_SIZE;	/* 8,16,32,64,128 */
+ int snd_dma2_size[SND_CARDS] = SND_DEFAULT_DMA_SIZE;	/* 8,16,32,64,128 */
+ int snd_opl3sa3_ymode[SND_CARDS] = { [0 ... (SND_CARDS-1)] = 0 };   /* 0,1,2,3 */ /*SL Added*/
++int snd_opl3sa_zvport[SND_CARDS] = { [0 ... (SND_CARDS-1)] = 0 };   /* 0(absent),1(available) */
+ #ifdef __ISAPNP__
+ int snd_isapnp[SND_CARDS] = {[0 ... (SND_CARDS - 1)] = 1};
+ #endif
+@@ -88,6 +89,8 @@
+ #endif
+ MODULE_PARM(snd_opl3sa3_ymode, "1-" __MODULE_STRING(SND_CARDS) "i"); /* SL Added */
+ MODULE_PARM_DESC(snd_opl3sa3_ymode, "Speaker size selection for 3D Enhancement mode: Desktop/Large Notebook/Small Notebook/HiFi. [list=0,1,2,3]");  /* SL Added */
++MODULE_PARM(snd_opl3sa_zvport, "1-" __MODULE_STRING(SND_CARDS) "i");
++MODULE_PARM_DESC(snd_opl3sa_zvport, "ZV port. [list=0,1]");
+ 
+ struct snd_opl3sa {
+ 	int version;		/* 2 or 3 */
+@@ -109,6 +112,7 @@
+ 	snd_kmixer_element_t *me_vol_master;
+ 	snd_kmixer_element_t *me_sw_master;
+ 	snd_kmixer_element_t *me_tone;
++	snd_kmixer_element_t *me_zvport;
+ #ifdef __ISAPNP__
+ 	struct isapnp_dev *dev;
+ #endif
+@@ -506,6 +510,30 @@
+ 	return change;
+ }
+ 
++static int snd_opl3sa_zv_switch(snd_kmixer_element_t * element,
++				 int w_flag, int *value)
++{
++	struct snd_opl3sa *oplcard = (struct snd_opl3sa *)element->private_data;
++	unsigned long flags;
++	unsigned char reg, oval;
++	int change = 0;
++	
++	spin_lock_irqsave(&oplcard->reg_lock, flags);
++	oval = (reg = snd_opl3sa_read(oplcard->port, 0x02)) & 0x01;
++	if (!w_flag) {
++		*value = oval;
++	} else {
++		change = oval != *value;
++		reg &= ~0x01;
++		if (*value)
++			reg |= 0x01;
++		snd_opl3sa_write(oplcard->port, 0x02, reg);
++	}
++	spin_unlock_irqrestore(&oplcard->reg_lock, flags);
++	return change;
++	
++}
++
+ static int snd_opl3sa_group_master(snd_kmixer_group_t * group,
+ 				   snd_kmixer_file_t * file,
+ 				   int w_flag,
+@@ -944,6 +972,10 @@
+ 		if (snd_opl3_new(card, 0, snd_fm_port[dev],
+ 				 snd_fm_port[dev] + 2,
+ 				 OPL3_HW_OPL3, 1, &synth) < 0)
++			goto __nodev;
++	}
++	if (snd_opl3sa_zvport[dev] != 0){
++		if ((oplcard->me_zvport = snd_mixer_lib_sw2(mixer, "ZV Port Switch", 0, snd_opl3sa_zv_switch, oplcard)) == NULL)
+ 			goto __nodev;
+ 	}
+ #if 0

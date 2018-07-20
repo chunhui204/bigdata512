@@ -1,0 +1,34 @@
+linuxtv-dvb-1.0.0
+=================
+
+The is the final release of the linuxtv DVB drivers for Linux 2.4.
+Our development will continue in the dvb-kernel CVS tree, which has
+significant changes to support Linux 2.6, but also supports Linux 2.4.
+
+This release tarball includes:
+- the DVB driver core
+- drivers for PCI cards based on the Philips SAA7146 PCI bridge,
+  and cards based on the B2C2 FlexCopII; see the file CARDS for
+  full information
+- a number of frontend drivers for DVB-S, DVB-C and DVB-T
+- two older, unmaintained drivers for Margi and EM8300 MPEG decoder cards
+- some utilities and test programs
+- TeX source for the "Linux DVB API Version 3" documentation
+
+For a list of supported hardware see the file CARDS.
+For installation instructions see the INSTALL file,
+See the file FAQ for some very frequently asked questions and
+information about DVB applications for Linux.
+
+For more information and latest releases visit:
+http://www.linuxtv.org/
+
+Developer mailing list:
+http://linuxtv.org/mailinglists.xml
+
+If you have questions please make use of the search function
+of the mailing list archive before asking on the list:
+http://linuxtv.org/cgi-bin/htwrap.pl
+
+
+Good luck and have fun!

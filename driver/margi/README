@@ -1,0 +1,59 @@
+This is the driver for the Margi/Billionton MPEG decoder PC-Card.
+It is still in a beta state and may cause problems with your system.
+
+INSTALLING 
+----------
+1) You will need a 2.4.x kernel to make everything work
+   For ZV support you need 2.4.9-pre2-ac3 or later.
+
+2) go into the DVB/driver directory and type
+   makepatch <kernelversion>
+   e.g. makepatch 2.4.19-pre2-ac3
+	
+3) Don't forget to use makedev.napi
+
+4) make menuconfig in kernel dir and setup DVB in Multimedia devices.
+   Don't use the video4linux Margi driver, but include v4l support.
+
+5) You can also set the following in .config:
+   CONFIG_VIDEO_DEV=m
+   CONFIG_DVB=m
+   CONFIG_DVB_DEV=m
+   CONFIG_MARGI_DVB=m
+
+
+Using the driver with Linux DVB API 
+-----------------------------------
+
+Compile the tuxzap package. Then you can use ntuxplayer 
+for playback. Read the documentation in apps/tuxzap
+
+
+ZV-support
+----------
+
+The latest ac-patches have ZV support for various pcmcia controllers.
+There are patches for some graphics chips or sound chips in the
+zv-diffs directory, like the patches for the Neomagic graphics chip
+and YMF sound chip submitted by Shigehiro Nomura. 
+
+There are now three module parameters that are all set to 1 (=on) but can
+be set to off in /etc/pcmcia/config.opts
+They are : "svhs" for switching the svhs output DAC on or off (0 or 1).
+           "composite" for switching the composite output DAC on or off.
+           "use_zv" for enabling zv output if you compiled with the
+           -DUSE_ZV setting in margi_cs.mk.
+
+E.g. 
+module "margi_cs" opts "use_zv=0" 
+turns off zv output.
+or 
+module "margi_cs" opts "composite=0 svhs=0"
+turns off the external outputs. 
+
+WHO DO I BLAME/FLAME?
+=== == = ============
+
+Send comments, patches, free pizza to <mocm@metzlerbros.de>. 
+
+

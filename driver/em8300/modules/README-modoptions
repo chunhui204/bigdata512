@@ -1,0 +1,44 @@
+General fixes:
+
+ em8300:
+   activate_loopback   -- set to 1 if you lose video signal
+                          when uploading the microcode
+   bt865_ucode_timeout -- set to 1 if you have a bt865 and get timeouts
+                          when uploading the microcode.
+   use_bt865           -- set to 1 if you have a bt865.  Modifies some
+                          initialization values.
+			  This now works with multiple cards, so you can
+                          do use_bt865=0,1 if you have two cards and the
+                          second uses a bt865.
+
+If your red and blue colors channels are switched:
+
+ adv717x:
+   swap_redblue_pal    -- swaps the red and blue channels (ntsc and pal now)
+
+Greenscreen (tvout only) fixes:
+
+ adv717x:
+   pixelport_16bit     -- use 16bit pixelport control
+   pixelport_other_pal -- use the opposite pixelport control for pal mode
+                          if you only use/care about NTSC or PAL ignore this
+
+ em8300:
+   dicom_fix       -- set register 0x1f5e to 0x1efe instead of 0x1afe
+   dicom_control   -- set dicom control register to 0x9efe instead of 0x9afe
+   dicom_other_pal -- use the opposite fix values for pal mode
+                      if you only use/care about NTSC or PAL ignore this.
+
+Common settings to fix greenscreen:
+
+adv717x pixelport_16bit=1 pixelport_other_pal=1
+em8300  dicom_fix=1 dicom_control=1 dicom_other_pal=1
+
+adv717x pixelport_16bit=0 pixelport_other_pal=0
+em8300  dicom_fix=1 dicom_control=1 dicom_other_pal=0
+
+adv717x pixelport_16bit=0 pixelport_other_pal=1
+em8300  dicom_fix=1 dicom_control=1 dicom_other_pal=1
+
+adv717x pixelport_16bit=1 pixelport_other_pal=0
+em8300  dicom_fix=0 dicom_control=0 dicom_other_pal=0

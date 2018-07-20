@@ -1,0 +1,10 @@
+This tuner module needs the file "Sc_main.mc" from the windows driver.
+It should be copied to "/usr/lib/DVB/driver/frontends". Or give the
+module parameter: mcfile="/PATH/FILENAME". The microcode from this file has 
+to be loaded only once after a power on. Because this takes some 
+time, you can pass the module parameter: loadcode=0 if you only want to 
+reload the dvb driver.
+This driver is working fine on my computer, but I am not a real expert for
+linux modules. So I hope somebody else, who knows more about linux programming
+and dvb frontends, will do some work an this driver.
+If you have questions, mail to peitz@snafu.de

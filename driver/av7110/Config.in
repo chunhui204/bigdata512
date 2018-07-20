@@ -1,0 +1,1 @@
+dep_tristate '  SAA7146 based AV7110 and Nova/budget cards' CONFIG_AV7110_DVB 

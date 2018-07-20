@@ -1,0 +1,4 @@
+#!/bin/sh
+amixer eset 'ZV Port Switch',0,Switch2 on >/dev/null
+amixer eset 'FM Input Switch',0,Switch1 on >/dev/null
+amixer eset 'FM Input Volume',0,Volume1 30% >/dev/null

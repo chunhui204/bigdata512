@@ -1,0 +1,1 @@
+dep_tristate '  Margi/Billionton DVD-to-GO' CONFIG_MARGI_DVB $CONFIG_DVB_DEV $CONFIG_I2C  $CONFIG_PCMCIA
