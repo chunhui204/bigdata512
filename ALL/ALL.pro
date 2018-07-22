@@ -17,18 +17,24 @@ SOURCES += main.cpp\
     qcustomplot.cpp \
     audiosetting.cpp \
     networkthread.cpp \
-    plotthread.cpp \
-    audiowidget.cpp
+    audiowidget.cpp \
+    audiodatathread.cpp \
+    audioplotthread.cpp
 
 HEADERS  += mainwidget.h \
     qcustomplot.h \
     audiosetting.h \
     networkthread.h \
-    plotthread.h \
-    audiowidget.h
+    audiowidget.h \
+    audiodatathread.h \
+    common.h \
+    audioplotthread.h
 
 FORMS += mainwidget.ui \
     audiosetting.ui \
     audiowidget.ui
 
 CONFIG += C++11
+
+DISTFILES += \
+    readme.txt

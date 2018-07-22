@@ -2,14 +2,21 @@
 #include "ui_mainwidget.h"
 #include <QDebug>
 #include <QHostAddress>
+#include "common.h"
 
 #define cout qDebug()<<__FILE__<<__LINE__<<": "
+
+QSemaphore AudioBufFree;
+QSemaphore AudioBufUsed;
+char AudioBuffer[AudioBufSize];
 
 MainWidget::MainWidget(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWidget)
 {
     ui->setupUi(this);
+    //初始化变量
+
     //设置窗口菜单栏，标题，图标等
     designMenu();
     setWindowTitle(tr("CVPR"));

@@ -12,6 +12,9 @@
 #include <QByteArray>
 #include "audiowidget.h"
 #include "audiosetting.h"
+#include <QThread>
+#include "audiodatathread.h"
+#include "plotthread.h"
 
 namespace Ui {
 class MainWidget;
@@ -44,6 +47,10 @@ private:
     //网络
     QTcpServer *tcpServer;
     QTcpSocket *tcpSocket;
+    //线程
+    QThread *audioThread, *videoThread;
+    AudioDataThread *adata_thread;
+
     //设备参数
     QList<AudioSettingFormat> audioformats;
 
