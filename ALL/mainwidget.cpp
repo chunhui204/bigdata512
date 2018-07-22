@@ -1,4 +1,4 @@
-#include "mainwidget.h"
+﻿#include "mainwidget.h"
 #include "ui_mainwidget.h"
 #include <QDebug>
 #include <QHostAddress>
@@ -12,11 +12,26 @@ char AudioBuffer[AudioBufSize];
 
 MainWidget::MainWidget(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWidget)
+    ui(new Ui::MainWidget),
+    /*线程初始化*/
+    audioThread(new QThread(this)),
+    videoThread(new QThread(this)),
+    aPlotThread(new QThread(this)),
+    vPlotThread(new QThread(this)),
+    adata_thread(new AudioDataThread),
+    aplot_thread(new AudioPlotThread)
 {
     ui->setupUi(this);
     //初始化变量
 
+
+    adata_thread->moveToThread(audioThread);
+    aplot_thread->moveToThread(aPlotThread);
+
+    connect(audioThread, &QThread::finished, adata_thread, &QObject::deleteLater);
+    connect(aPlotThread, &QThread::finished, aplot_thread, &QObject::deleteLater);
+    audioThread->start();
+    aPlotThread->start();
     //设置窗口菜单栏，标题，图标等
     designMenu();
     setWindowTitle(tr("CVPR"));
@@ -29,7 +44,7 @@ MainWidget::MainWidget(QWidget *parent) :
     //初始化网络
     tcpSocket = NULL;
     tcpServer = new QTcpServer(this);
-    tcpServer->listen(QHostAddress::Any, 8888);
+    tcpServer->listen(QHostAddress::Any, COMMAND_PORT);
 
     connect(tcpServer, &QTcpServer::newConnection,
             [=]()
@@ -49,10 +64,21 @@ MainWidget::MainWidget(QWidget *parent) :
 MainWidget::~MainWidget()
 {
     delete ui;
-    tcpSocket->disconnectFromHost();
-    tcpSocket->close();
-    tcpSocket = NULL;
+    if(tcpSocket != NULL)
+    {
+        tcpSocket->disconnectFromHost();
+        tcpSocket->close();
+    }
     tcpServer->close();
+
+    audioThread->quit();
+    audioThread->wait();
+    videoThread->quit();
+    videoThread->wait();
+    aPlotThread->quit();
+    aPlotThread->wait();
+    vPlotThread->quit();
+    vPlotThread->wait();
 
 }
 
@@ -112,18 +138,20 @@ void MainWidget::designMenu(void)
 
     //显示终端连接信息，显示ip，port
     labelConnection = new QLabel(this);
-    labelConnection->setText(QString("未连接"));
+    labelConnection->setText(QString(tr("未连接")));
     ui->statusBar->addWidget(labelConnection);
 
 }
 void MainWidget::connectUI()
 {
     //当对话框设置改变时通知终端进行重新配置
-    connect(audioSetting, &AudioSetting::updateAudioFormat, this, &MainWidget::updateAudioFormat);
-
+    connect(audioSetting, &AudioSetting::audioFormatChanged, this, &MainWidget::onAudioFormatChanged);
+    connect(audioSetting, &AudioSetting::audioFormatChanged, aplot_thread, &AudioPlotThread::onAudioFormatChanged);
+    //widget通过command metwork进行命令传递
+    connect(audioWidget, &AudioWidget::commandIssued, this, &MainWidget::onCommandIssue);
 }
 //通知终端重置麦克风配置
-void MainWidget::updateAudioFormat(const AudioSettingFormat &format)
+void MainWidget::onAudioFormatChanged(const AudioSettingFormat &format)
 {
     QByteArray array;
     QDataStream stream(&array, QIODevice::WriteOnly);
@@ -140,7 +168,7 @@ void MainWidget::updateAudioFormat(const AudioSettingFormat &format)
 //    if(tcpSocket != NULL)
 //        tcpSocket->write(QString("startAudio").toUtf8());
 //}
-////通知终端结束采集音频
+//通知终端结束采集音频
 //void MainWidget::on_button_audio_capEnd_clicked()
 //{
 //    if(tcpSocket != NULL)
@@ -159,19 +187,7 @@ void MainWidget::dealResponseFromClient()
     {
         audioformats = parseAudioTcphead(response);
     }
-    else if("audioData" == head)
-    {
-        //解析音频信息
-        //通知绘图
-        qint64 datasize;
-        QByteArray data;
-        stream >> datasize >> data;
 
-    }
-    else if("videoData" == head)
-    {
-
-    }
 }
 
 
@@ -186,7 +202,20 @@ void MainWidget::dealResponseFromClient()
  * stopAudio
  * stopVideo
  */
+void MainWidget::onCommandIssue(QString command)
+{
+    if(tcpSocket == NULL)
+        return;
 
+    QByteArray array;
+    QDataStream stream(&array, QIODevice::WriteOnly);
+    if(command=="startAudio")
+        stream << QString("startAudio");
+    else if(command=="startAudio")
+        stream << QString("stopAudio");
+
+    tcpSocket->write(array);
+}
 
 
 

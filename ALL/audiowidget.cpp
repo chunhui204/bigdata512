@@ -37,8 +37,19 @@ AudioWidget::~AudioWidget()
 {
     delete ui;
 }
-void AudioWidget::drawAudioCurve(const QByteArray &buffer)
-{
 
+void AudioWidget::onDataProcessed(const QVector<double> &xs, const QVector<double> &ys)
+{
+    ui->customPlot->graph(0)->setData(xs, ys);
+    ui->customPlot->replot();
 }
 
+void AudioWidget::on_button_audio_capStart_clicked()
+{
+    commandIssued("startAudio");
+}
+
+void AudioWidget::on_button_audio_capEnd_clicked()
+{
+    commandIssued("stopAudio");
+}

@@ -5,6 +5,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include "common.h"
+#include <QDataStream>
 
 class AudioDataThread : public QObject
 {

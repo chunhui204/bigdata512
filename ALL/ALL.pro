@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets multimedia printsupport
 
@@ -21,7 +21,7 @@ SOURCES += main.cpp\
     audiodatathread.cpp \
     audioplotthread.cpp
 
-HEADERS  += mainwidget.h \
+HEADERS += mainwidget.h \
     qcustomplot.h \
     audiosetting.h \
     networkthread.h \
@@ -36,5 +36,4 @@ FORMS += mainwidget.ui \
 
 CONFIG += C++11
 
-DISTFILES += \
-    readme.txt
+

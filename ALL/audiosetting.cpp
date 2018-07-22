@@ -1,4 +1,4 @@
-#include "audiosetting.h"
+﻿#include "audiosetting.h"
 #include "ui_audiosetting.h"
 
 AudioSetting::AudioSetting(QWidget *parent) :
@@ -52,8 +52,8 @@ void AudioSetting::designWidget(const QList<AudioSettingFormat> &formats)
             currentFormat.sampleRates.append(formats[ind].sampleRates[ui->comboBox_sampRate->currentIndex()]);
             currentFormat.sampleSizes.append(formats[ind].sampleSizes[ui->comboBox_sampSize->currentIndex()]);
             currentFormat.codec = formats[ind].codec;
-
-            emit updateAudioFormat(currentFormat);
+           //信号函数中传递的结构体中QStringList都只有一个值，所以取值只取第一个即可
+            emit audioFormatChanged(currentFormat);
         }
     });
     //点击取消

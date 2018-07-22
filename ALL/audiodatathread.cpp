@@ -6,7 +6,7 @@ AudioDataThread::AudioDataThread(QObject *parent) : QObject(parent)
     bufferpos = 0;
     server = new QTcpServer(this);
     socket = NULL;
-    server->listen(QHostAddress::ANy, AUDIO_PORT);
+    server->listen(QHostAddress::Any, AUDIO_PORT);
 
     connect(server, &QTcpServer::newConnection,
             [=]()
@@ -19,9 +19,15 @@ AudioDataThread::AudioDataThread(QObject *parent) : QObject(parent)
 //线程函数
 void AudioDataThread::dataRecv()
 {
+    qint64 datasize;
+    QByteArray array;
     AudioBufFree.acquire();//lock
 
-    QByteArray array = socket->readAll();
+    QByteArray response = socket->readAll();
+    QDataStream stream(&response, QIODevice::ReadOnly);
+
+    stream >> datasize >> array;
+
     for(int i=0; i<array.size(); i++)
     {
         AudioBuffer[bufferpos] = *(array.data()+i);
@@ -35,7 +41,10 @@ void AudioDataThread::dataRecv()
 }
 AudioDataThread::~AudioDataThread()
 {
-    socket->disconnectFromHost();
-    socket->close();
+    if(socket != NULL)
+    {
+        socket->disconnectFromHost();
+        socket->close();
+    }
     server->close();
 }

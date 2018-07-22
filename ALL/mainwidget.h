@@ -14,7 +14,7 @@
 #include "audiosetting.h"
 #include <QThread>
 #include "audiodatathread.h"
-#include "plotthread.h"
+#include "audioplotthread.h"
 
 namespace Ui {
 class MainWidget;
@@ -30,7 +30,8 @@ public:
 
 private slots:
     void dealResponseFromClient();
-    void updateAudioFormat(const AudioSettingFormat &);
+    void onAudioFormatChanged(const AudioSettingFormat &);
+    void onCommandIssue(QString command);
 
 private:
     //ui
@@ -48,8 +49,9 @@ private:
     QTcpServer *tcpServer;
     QTcpSocket *tcpSocket;
     //线程
-    QThread *audioThread, *videoThread;
+    QThread *audioThread, *videoThread, *aPlotThread, *vPlotThread;
     AudioDataThread *adata_thread;
+    AudioPlotThread *aplot_thread;
 
     //设备参数
     QList<AudioSettingFormat> audioformats;

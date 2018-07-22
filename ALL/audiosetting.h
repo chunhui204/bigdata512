@@ -2,15 +2,7 @@
 #define AUDIOSETTING_H
 
 #include <QDialog>
-
-//为麦克风设备信息结构体
-typedef struct {
-    QString deviceName;
-    QStringList sampleRates;
-    QString channel;
-    QStringList sampleSizes;
-    QString codec;
-} AudioSettingFormat;
+#include "common.h"
 
 namespace Ui {
 class AudioSetting;
@@ -26,7 +18,7 @@ public:
     void designWidget(const QList<AudioSettingFormat> &) ;
 
 signals:
-    void updateAudioFormat(const AudioSettingFormat &);
+    void audioFormatChanged(const AudioSettingFormat &);
 
 private:
     Ui::AudioSetting *ui;

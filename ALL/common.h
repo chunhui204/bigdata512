@@ -18,4 +18,13 @@ extern QSemaphore AudioBufFree;
 extern QSemaphore AudioBufUsed;
 //缓冲数组
 extern char AudioBuffer[AudioBufSize];
+
+//为麦克风设备信息结构体
+typedef struct {
+    QString deviceName;
+    QStringList sampleRates;
+    QString channel;
+    QStringList sampleSizes;
+    QString codec;
+} AudioSettingFormat;
 #endif // COMMON_H
