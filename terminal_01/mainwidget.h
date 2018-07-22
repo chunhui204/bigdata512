@@ -5,6 +5,10 @@
 #include <QTcpSocket>
 #include "audiobase.h"
 
+const int COMMAND_PORT = 8888;
+const int AUDIO_PORT = 8889;
+const int VIDEO_PORT = 8890;
+
 namespace Ui {
 class MainWidget;
 }
@@ -19,15 +23,14 @@ public:
 
 private slots:
     void dealConnection();
-    void dealResponseFromServer();
-    void dealAudioData(const QByteArray*, qint64, qint64);
+    void dealCommandResponse();
+    void sendAudioData(const QByteArray*, qint64, qint64);
     void on_button_connect_clicked();
 
-    void on_button_quit_clicked();
 
 private:
     Ui::MainWidget *ui;
-    QTcpSocket *tcpSocket;
+    QTcpSocket *commandSocket, *audioSocket;
     AudioBase *audioBase;
 
 };

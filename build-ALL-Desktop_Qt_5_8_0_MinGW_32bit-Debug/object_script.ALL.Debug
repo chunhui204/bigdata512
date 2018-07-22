@@ -1,0 +1,17 @@
+INPUT(
+./debug\main.o
+./debug\mainwidget.o
+./debug\qcustomplot.o
+./debug\audiosetting.o
+./debug\networkthread.o
+./debug\audiowidget.o
+./debug\audiodatathread.o
+./debug\audioplotthread.o
+./debug\moc_mainwidget.o
+./debug\moc_qcustomplot.o
+./debug\moc_audiosetting.o
+./debug\moc_networkthread.o
+./debug\moc_audiowidget.o
+./debug\moc_audiodatathread.o
+./debug\moc_audioplotthread.o
+);

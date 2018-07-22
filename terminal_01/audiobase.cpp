@@ -1,14 +1,13 @@
 #include "audiobase.h"
 
 AudioBase::AudioBase(QObject *parent) : QObject(parent)
-  , m_totalLength(audioBufferLength(m_format))
-
 {
     initializeAudio();
+
 }
 AudioBase::~AudioBase()
 {
-
+    delete m_buffer;
 }
 
 qint64 AudioBase::audioBufferLength(const QAudioFormat &format) const
@@ -38,6 +37,12 @@ void AudioBase::initializeAudio()
         format = info.nearestFormat(format);
     }
         m_format = format;
+        //初始化缓冲
+        m_totalLength = audioBufferLength(m_format);
+        m_currentPosition = 0;
+        m_tcpReadPosition = 0;
+        m_buffer = new QByteArray;
+        m_buffer->resize(m_totalLength);
 
    //初始化AudioInput
         m_audioInput = new QAudioInput(m_format, this);
@@ -59,14 +64,9 @@ void AudioBase::initializeAudio()
                 emit dataReadyEvent(m_buffer, m_tcpReadPosition, endpos);
             }
         });
-        //每次声卡采集到数据，IOdevice会受到新数据触发readyread信号。
-        //更新m_buffer
-        connect(audioIO, &QIODevice::readyRead, this, &AudioBase::audioDataReady);
 
+    audioIO = NULL;
 
-        m_currentPosition = 0;
-        m_tcpReadPosition = 0;
-        m_buffer->resize(m_totalLength);
 
 }
 
@@ -96,6 +96,9 @@ void AudioBase::audioDataReady()
 void AudioBase::startAudio()
 {
     audioIO = m_audioInput->start();
+    //每次声卡采集到数据，IOdevice会受到新数据触发readyread信号。
+    //更新m_buffer
+    connect(audioIO, &QIODevice::readyRead, this, &AudioBase::audioDataReady);
 
 }
 void AudioBase::stopAudio()
@@ -119,7 +122,7 @@ QByteArray AudioBase::audioInfoToTcp() const
     //获取输入设备信息
     QByteArray array;
     QDataStream stream(&array, QIODevice::WriteOnly);
-    stream << "audioDeviceInfo";
+    stream << QString("audioDeviceInfo");
 
     QList<QAudioDeviceInfo> availableInputDevices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
     foreach (QAudioDeviceInfo inDevice, availableInputDevices)

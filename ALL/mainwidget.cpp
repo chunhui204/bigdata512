@@ -162,31 +162,12 @@ void MainWidget::onAudioFormatChanged(const AudioSettingFormat &format)
     cout<<"重置";
 }
 
-//通知终端开始采集音频
-//void MainWidget::on_button_audio_capStart_clicked()
-//{
-//    if(tcpSocket != NULL)
-//        tcpSocket->write(QString("startAudio").toUtf8());
-//}
-//通知终端结束采集音频
-//void MainWidget::on_button_audio_capEnd_clicked()
-//{
-//    if(tcpSocket != NULL)
-//        tcpSocket->write(QString("stopAudio").toUtf8());
-//}
 //处理网络接收数据
 void MainWidget::dealResponseFromClient()
 {
     QByteArray response = tcpSocket->readAll();
-    QDataStream stream(&response, QIODevice::ReadOnly);
-    QString head;
 
-    stream << head;
-    //判断信息头，确定信息种类
-    if("audioDeviceInfo" == head)
-    {
-        audioformats = parseAudioTcphead(response);
-    }
+    audioformats = parseAudioTcphead(response);
 
 }
 
@@ -207,6 +188,7 @@ void MainWidget::onCommandIssue(QString command)
     if(tcpSocket == NULL)
         return;
 
+    cout<<command;
     QByteArray array;
     QDataStream stream(&array, QIODevice::WriteOnly);
     if(command=="startAudio")
@@ -228,8 +210,11 @@ QList<AudioSettingFormat>& MainWidget::parseAudioTcphead(QByteArray &response)
     QDataStream stream(&response, QIODevice::ReadOnly);
 
     QString head;
+    QString s;
+    cout<<response;
     stream >> head;
 
+    cout<<head<<s;
     while(stream.atEnd() == false)
     {
         AudioSettingFormat format;

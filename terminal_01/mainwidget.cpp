@@ -7,28 +7,37 @@ MainWidget::MainWidget(QWidget *parent) :
     ui(new Ui::MainWidget)
 {
     ui->setupUi(this);
+    ui->lineEdit_ip->setText("127.0.0.1");
     //初始化套接字
-    tcpSocket = new QTcpSocket(this);
+    commandSocket = new QTcpSocket(this);
+    audioSocket = new QTcpSocket(this);
     audioBase = new AudioBase(this);
 
-    connect(tcpSocket, &QTcpSocket::connected, this, &MainWidget::dealConnection);
-    connect(tcpSocket, &QTcpSocket::readyRead, this, &MainWidget::dealResponseFromServer);
-    connect(audioBase, &AudioBase::dataReadyEvent, this, &MainWidget::dealAudioData);
+    connect(commandSocket, &QTcpSocket::connected, this, &MainWidget::dealConnection);
+    connect(commandSocket, &QTcpSocket::readyRead, this, &MainWidget::dealCommandResponse);
+    connect(audioBase, &AudioBase::dataReadyEvent, this, &MainWidget::sendAudioData);
+
 }
 
 MainWidget::~MainWidget()
 {
     delete ui;
+    commandSocket->disconnectFromHost();
+    commandSocket->close();
+    audioSocket->disconnectFromHost();
+    audioSocket->close();
 }
 
 void MainWidget::on_button_connect_clicked()
 {
     //连接服务器
     QString ip = ui->lineEdit_ip->text();
-    quint16 port = ui->lineEdit_port->text().toInt();
 
-    if(ip.isEmpty() == false && port > 0)
-        tcpSocket->connectToHost(QHostAddress(ip), port);
+    if(ip.isEmpty() == false)
+    {
+        commandSocket->connectToHost(QHostAddress(ip), COMMAND_PORT);
+        audioSocket->connectToHost(QHostAddress(ip), AUDIO_PORT);
+    }
 }
 void MainWidget::dealConnection()
 {
@@ -38,9 +47,9 @@ void MainWidget::dealConnection()
     //QString videoInfo = videoBase->getVideoInfo();
     //QString info = audioInfo + videoInfo;
 
-    tcpSocket->write(audioInfo);
+    commandSocket->write(audioInfo);
 }
-void MainWidget::dealAudioData(const QByteArray* buffer, qint64 startPos, qint64 endPos)
+void MainWidget::sendAudioData(const QByteArray* buffer, qint64 startPos, qint64 endPos)
 {
     /*
      * 消息流：
@@ -51,7 +60,7 @@ void MainWidget::dealAudioData(const QByteArray* buffer, qint64 startPos, qint64
     QDataStream stream(&array, QIODevice::WriteOnly);
 
     stream << QString("audioData") << endPos - startPos << buffer_t;
-    tcpSocket->write(array);
+    audioSocket->write(array);
 }
 //解析服务器响应
 /*
@@ -64,18 +73,19 @@ void MainWidget::dealAudioData(const QByteArray* buffer, qint64 startPos, qint64
  * stopAudio
  * stopVideo
  */
-void MainWidget::dealResponseFromServer()
+void MainWidget::dealCommandResponse()
 {
-    QByteArray response = tcpSocket->readAll();
+    QByteArray response = commandSocket->readAll();
     QDataStream stream(&response, QIODevice::ReadOnly);
     QString head;
 
     stream >> head;
+    cout<<stream;
 
     if("resetAudioFormat" == head)
     {
         //更新audio配置
-
+        ui->textEdit->append("更新配置成功");
     }
     else if("resetVideoFormat" == head)
     {
@@ -92,11 +102,3 @@ void MainWidget::dealResponseFromServer()
 
 }
 
-
-
-void MainWidget::on_button_quit_clicked()
-{
-    tcpSocket->disconnectFromHost();
-    tcpSocket->close();
-    close();
-}

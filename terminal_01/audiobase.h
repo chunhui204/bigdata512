@@ -12,6 +12,8 @@
 #include <QDataStream>
 #include <QDebug>
 
+#define cout qDebug()<<__FILE__<<__LINE__<<":"
+
 const qint64 BufferDurationUs       = 1 * 1000000;// 单位： seconds
 const int    NotifyIntervalMs       = 500;
 
@@ -45,7 +47,7 @@ private:
     //上位机读到的位置，当前数据长度，总长度
     qint64 m_tcpReadPosition;
     qint64 m_currentPosition;
-    const qint64 m_totalLength;
+    qint64 m_totalLength;
     //audio 设备
     QAudioFormat m_format;
     QAudioInput *m_audioInput;
