@@ -1,6 +1,8 @@
 #include "mainwidget.h"
 #include "ui_mainwidget.h"
 #include <QHostAddress>
+#include <QTime>
+
 
 MainWidget::MainWidget(QWidget *parent) :
     QWidget(parent),
@@ -16,7 +18,12 @@ MainWidget::MainWidget(QWidget *parent) :
     connect(commandSocket, &QTcpSocket::connected, this, &MainWidget::dealConnection);
     connect(commandSocket, &QTcpSocket::readyRead, this, &MainWidget::dealCommandResponse);
     connect(audioBase, &AudioBase::dataReadyEvent, this, &MainWidget::sendAudioData);
-
+    connect(commandSocket, &QTcpSocket::disconnected,
+            [=]()
+            {
+                ui->textEdit->setText("断开连接");
+                audioBase->stopAudio();
+            });
 }
 
 MainWidget::~MainWidget()
@@ -48,6 +55,9 @@ void MainWidget::dealConnection()
     //QString info = audioInfo + videoInfo;
 
     commandSocket->write(audioInfo);
+
+
+    func();
 }
 void MainWidget::sendAudioData(const QByteArray* buffer, qint64 startPos, qint64 endPos)
 {
@@ -55,12 +65,29 @@ void MainWidget::sendAudioData(const QByteArray* buffer, qint64 startPos, qint64
      * 消息流：
      * audioData _datasize _data
      */
+    cout<<"------------"<<endPos-startPos<<"------------"<<buffer->size();
+    if(endPos < startPos)
+    {
+        return;
+    }
+    char ch[endPos-startPos];
+
+    qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
+    for(int i=0;i<endPos-startPos;i++)
+    {
+        ch[i] = qrand()%256;
+    }
     QByteArray array;
-    QByteArray buffer_t(buffer->data()+startPos, endPos-startPos);
+    QByteArray buffer_t(ch, endPos-startPos);
+//    QByteArray buffer_t(buffer->data()+startPos, endPos-startPos);
     QDataStream stream(&array, QIODevice::WriteOnly);
 
-    stream << QString("audioData") << endPos - startPos << buffer_t;
-    audioSocket->write(array);
+
+    stream << endPos - startPos << buffer_t;
+    int ret = audioSocket->write(array);
+    cout<<"------"<<ret;
+    QThread::sleep(1);
+
 }
 //解析服务器响应
 /*
@@ -101,4 +128,35 @@ void MainWidget::dealCommandResponse()
     }
 
 }
+void MainWidget::func()
+{
+    qint64 startPos = 0;
+    qint64 endPos = 44100;
 
+    qint64 sum= 0;
+
+    if(endPos < startPos)
+    {
+        return;
+    }
+    char ch[endPos-startPos];
+
+    qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
+    for(int i=0;i<endPos-startPos;i++)
+    {
+        ch[i] = 120;//qrand()%256;
+        cout << "[] " << ch[i];
+        sum += ch[i];
+    }
+    QByteArray array;
+    QByteArray buffer_t(ch, endPos-startPos);
+//    QByteArray buffer_t(buffer->data()+startPos, endPos-startPos);
+    QDataStream stream(&array, QIODevice::WriteOnly);
+
+
+    stream << qint64(0) << buffer_t;
+    stream.device()->seek(0);
+    stream << endPos - startPos;
+    int ret = audioSocket->write(array);
+    cout<<"------"<<sum;
+}

@@ -23,7 +23,9 @@ private:
     QTcpSocket *socket;
     //当前访问缓存数组的位置
     int bufferpos;
-
+    //分布读取
+    qint64 readBytes;
+    qint64 totalSize;
 };
 
 #endif // AUDIODATATHREAD_H

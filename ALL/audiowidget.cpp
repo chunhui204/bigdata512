@@ -1,5 +1,6 @@
 #include "audiowidget.h"
 #include "ui_audiowidget.h"
+#include "common.h"
 
 AudioWidget::AudioWidget(QWidget *parent) :
     QWidget(parent),
@@ -12,7 +13,7 @@ AudioWidget::AudioWidget(QWidget *parent) :
     ui->customPlot->graph(0)->setPen(QPen(Qt::blue)); // line color blue for first graph
     ui->customPlot->graph(0)->setBrush(QBrush(QColor(0, 0, 255, 20))); // first graph will be filled with translucent blue
     //y周范围
-    ui->customPlot->yAxis->setRange(-10, 10);
+    ui->customPlot->yAxis->setRange(-1.0, 1.0);
     QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
     timeTicker->setTimeFormat("%h:%m");
     ui->customPlot->xAxis->setTicker(timeTicker);
@@ -40,16 +41,18 @@ AudioWidget::~AudioWidget()
 
 void AudioWidget::onDataProcessed(const QVector<double> &xs, const QVector<double> &ys)
 {
+    cout<< ys[0];
     ui->customPlot->graph(0)->setData(xs, ys);
     ui->customPlot->replot();
 }
 
 void AudioWidget::on_button_audio_capStart_clicked()
 {
-    commandIssued("startAudio");
+    cout<<"start";
+    emit commandIssued(QString("startAudio"));
 }
 
 void AudioWidget::on_button_audio_capEnd_clicked()
 {
-    commandIssued("stopAudio");
+    emit commandIssued("stopAudio");
 }

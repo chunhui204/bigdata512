@@ -1,12 +1,9 @@
 ﻿#include "mainwidget.h"
 #include "ui_mainwidget.h"
-#include <QDebug>
 #include <QHostAddress>
 #include "common.h"
 
-#define cout qDebug()<<__FILE__<<__LINE__<<": "
-
-QSemaphore AudioBufFree;
+QSemaphore AudioBufFree(AudioBufSize);
 QSemaphore AudioBufUsed;
 char AudioBuffer[AudioBufSize];
 
@@ -30,8 +27,7 @@ MainWidget::MainWidget(QWidget *parent) :
 
     connect(audioThread, &QThread::finished, adata_thread, &QObject::deleteLater);
     connect(aPlotThread, &QThread::finished, aplot_thread, &QObject::deleteLater);
-    audioThread->start();
-    aPlotThread->start();
+
     //设置窗口菜单栏，标题，图标等
     designMenu();
     setWindowTitle(tr("CVPR"));
@@ -41,6 +37,7 @@ MainWidget::MainWidget(QWidget *parent) :
     audioWidget = new AudioWidget(this);
 
     setCentralWidget(audioWidget);
+    connectUI();
     //初始化网络
     tcpSocket = NULL;
     tcpServer = new QTcpServer(this);
@@ -48,17 +45,19 @@ MainWidget::MainWidget(QWidget *parent) :
 
     connect(tcpServer, &QTcpServer::newConnection,
             [=]()
-    {//获取通信socket，并显示ip
-        tcpSocket = tcpServer->nextPendingConnection();
-        QString ip = tcpSocket->peerAddress().toString();
-        quint16 port = tcpSocket->peerPort();
-        labelConnection->setText(QString("ip: %1, port: %2").arg(ip).arg(port));
+            {//获取通信socket，并显示ip
+                tcpSocket = tcpServer->nextPendingConnection();
+                QString ip = tcpSocket->peerAddress().toString();
+                quint16 port = tcpSocket->peerPort();
+                labelConnection->setText(QString("ip: %1, port: %2").arg(ip).arg(port));
 
-        connect(tcpSocket, &QTcpSocket::readyRead, this, &MainWidget::dealResponseFromClient);
-    });
+                connect(tcpSocket, &QTcpSocket::readyRead, this, &MainWidget::dealResponseFromClient);
+            });
 
 
 
+    audioThread->start();
+    aPlotThread->start();
 }
 
 MainWidget::~MainWidget()
@@ -144,11 +143,16 @@ void MainWidget::designMenu(void)
 }
 void MainWidget::connectUI()
 {
+    //当终端发来设备信息时通知绘图线程和设置界面(没通过消息机制，直接调用的)
+    connect(this, &MainWidget::audioFormatInit, aplot_thread, &AudioPlotThread::onAudioFormatInit);
     //当对话框设置改变时通知终端进行重新配置
     connect(audioSetting, &AudioSetting::audioFormatChanged, this, &MainWidget::onAudioFormatChanged);
-    connect(audioSetting, &AudioSetting::audioFormatChanged, aplot_thread, &AudioPlotThread::onAudioFormatChanged);
     //widget通过command metwork进行命令传递
-    connect(audioWidget, &AudioWidget::commandIssued, this, &MainWidget::onCommandIssue);
+    connect(audioWidget, &AudioWidget::commandIssued, this, &MainWidget::onCommandIssued);
+    //音频数据后台处理线程通知绘图部件
+    qRegisterMetaType<QVector<double>>("QVector<double>");
+    connect(aplot_thread, &AudioPlotThread::dataProcessed, audioWidget, &AudioWidget::onDataProcessed);
+
 }
 //通知终端重置麦克风配置
 void MainWidget::onAudioFormatChanged(const AudioSettingFormat &format)
@@ -162,13 +166,32 @@ void MainWidget::onAudioFormatChanged(const AudioSettingFormat &format)
     cout<<"重置";
 }
 
-//处理网络接收数据
+//处理命令网络接收数据
 void MainWidget::dealResponseFromClient()
 {
     QByteArray response = tcpSocket->readAll();
+    AudioSettingFormat used_format;
 
-    audioformats = parseAudioTcphead(response);
+    audioformats.clear();
+    QDataStream stream(&response, QIODevice::ReadOnly);
 
+    QString head;
+    stream >> head;
+    //正在使用的设备信息
+    used_format.deviceName = "";
+    used_format.codec = "";
+    stream >> used_format.sampleRates >> used_format.channel >> used_format.sampleSizes;
+    //可选的设备信息
+    while(stream.atEnd() == false)
+    {
+        AudioSettingFormat format;
+        stream >> format.deviceName >> format.sampleRates >> format.channel
+                >> format.sampleSizes >> format.codec;
+
+        audioformats.append(format);
+    }
+
+    emit audioFormatInit(used_format.sampleRates[0], used_format.channel, used_format.sampleSizes[0]);
 }
 
 
@@ -183,12 +206,11 @@ void MainWidget::dealResponseFromClient()
  * stopAudio
  * stopVideo
  */
-void MainWidget::onCommandIssue(QString command)
+void MainWidget::onCommandIssued(QString command)
 {
     if(tcpSocket == NULL)
         return;
 
-    cout<<command;
     QByteArray array;
     QDataStream stream(&array, QIODevice::WriteOnly);
     if(command=="startAudio")
@@ -197,31 +219,4 @@ void MainWidget::onCommandIssue(QString command)
         stream << QString("stopAudio");
 
     tcpSocket->write(array);
-}
-
-
-
-
-/*******utils******/
-//解析tcp头信息
-QList<AudioSettingFormat>& MainWidget::parseAudioTcphead(QByteArray &response)
-{
-    audioformats.clear();
-    QDataStream stream(&response, QIODevice::ReadOnly);
-
-    QString head;
-    QString s;
-    cout<<response;
-    stream >> head;
-
-    cout<<head<<s;
-    while(stream.atEnd() == false)
-    {
-        AudioSettingFormat format;
-        stream >> format.deviceName >> format.sampleRates >> format.channel
-                >> format.sampleSizes >> format.codec;
-
-        audioformats.append(format);
-    }
-    return audioformats;
 }

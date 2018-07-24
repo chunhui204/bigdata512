@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTcpSocket>
 #include "audiobase.h"
+#include <QThread>
 
 const int COMMAND_PORT = 8888;
 const int AUDIO_PORT = 8889;
@@ -20,6 +21,7 @@ class MainWidget : public QWidget
 public:
     explicit MainWidget(QWidget *parent = 0);
     ~MainWidget();
+    void func();
 
 private slots:
     void dealConnection();

@@ -4,7 +4,6 @@
 #include <QObject>
 #include "common.h"
 #include <QTimer>
-#include <QVector>
 
 const int RefreshTime = 50; //ms
 class AudioPlotThread : public QObject
@@ -15,7 +14,7 @@ public:
     ~AudioPlotThread();
     void dataTranslation();
 public slots:
-    void onAudioFormatChanged(const AudioSettingFormat &);
+    void onAudioFormatInit(const QString &rate, const QString &chns, const QString &size);
 
 signals:
     void dataProcessed(const QVector<double> &xs, const QVector<double> &ys);

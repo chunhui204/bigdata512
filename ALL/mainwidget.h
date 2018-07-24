@@ -31,8 +31,10 @@ public:
 private slots:
     void dealResponseFromClient();
     void onAudioFormatChanged(const AudioSettingFormat &);
-    void onCommandIssue(QString command);
+    void onCommandIssued(QString command);
 
+signals:
+    void audioFormatInit(const QString &rate, const QString &chns, const QString &size);
 private:
     //ui
     Ui::MainWidget *ui;
@@ -58,7 +60,6 @@ private:
 
 private:
     void designMenu(void);
-    QList<AudioSettingFormat> & parseAudioTcphead(QByteArray &response);
     void connectUI();
 //private signals:
 };

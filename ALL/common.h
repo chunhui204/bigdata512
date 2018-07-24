@@ -1,6 +1,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <QDebug>
+
 #include <QSemaphore>
 /*
  * 命令传递网络端口：8888
@@ -27,4 +29,6 @@ typedef struct {
     QStringList sampleSizes;
     QString codec;
 } AudioSettingFormat;
+
+#define cout qDebug()<<__FILE__<<__LINE__<<": "
 #endif // COMMON_H

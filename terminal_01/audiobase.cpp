@@ -24,7 +24,7 @@ void AudioBase::initializeAudio()
     //初始化audioFormat
     QAudioFormat format;
     // Set up the desired format, for example:
-    format.setSampleRate(115200);
+    format.setSampleRate(44100);
     format.setChannelCount(1);
     format.setSampleSize(8);
     format.setCodec("audio/pcm");
@@ -124,6 +124,14 @@ QByteArray AudioBase::audioInfoToTcp() const
     QDataStream stream(&array, QIODevice::WriteOnly);
     stream << QString("audioDeviceInfo");
 
+    //先发送正在使用的设备信息
+    QStringList s3;
+    s3.append(QString("%1").arg(m_format.sampleRate()));
+    QStringList s4;
+    s4.append(QString("%1").arg(m_format.sampleSize()));
+    stream << s3 << QString("%1").arg(m_format.channelCount()) << s4;
+
+    //发送可选的设备信息
     QList<QAudioDeviceInfo> availableInputDevices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
     foreach (QAudioDeviceInfo inDevice, availableInputDevices)
     {

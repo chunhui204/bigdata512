@@ -25,7 +25,7 @@ AudioPlotThread::~AudioPlotThread()
 void AudioPlotThread::dataTranslation()
 {
     //还未设置format
-    if(audioFormat.deviceName.isNull())
+    if(audioFormat.channel.isNull())
         return;
     //释放空间
     xs.clear();
@@ -34,8 +34,10 @@ void AudioPlotThread::dataTranslation()
     QVector<double>().swap(ys);
 
     int length = audioFormat.channel.toInt() * audioFormat.sampleRates[0].toInt()
-                * int(RefreshTime/ 1000);
-    AudioBufFree.acquire();
+                * RefreshTime/ 1000;
+    length = qMin(length, AudioBufUsed.available());
+//考虑最后一段qcustomplot对于大小的vector如何都正常显示    ？？？？？？
+    AudioBufFree.acquire(length);
 
     qint16 tmp = 0;
     for(int i=0; i<length; i++)
@@ -44,25 +46,32 @@ void AudioPlotThread::dataTranslation()
         if(audioFormat.sampleSizes[0].toInt() == 8)
         {
             tmp = AudioBuffer[bufferpos];
-            ys.push_back(tmp / 128); //因为8位的范围-127~128，使曲线纵轴在[-1,1]
+            double t = tmp/128.0;
+            ys.push_back(tmp / 128.0); //因为8位的范围-127~128，使曲线纵轴在[-1,1]
         }
         else if(audioFormat.sampleSizes[0].toInt() == 16)
         {
             tmp = AudioBuffer[2*bufferpos]<<8 | AudioBuffer[2*bufferpos+1];
-            ys.push_back(tmp / 32768);//因为16位的范围-32767~32768
+            ys.push_back(tmp / 32768.0);//因为16位的范围-32767~32768
         }
         else
             ys.push_back(-1);//方便出错查找
 
         bufferpos = (1 + bufferpos)%AudioBufSize;
     }
-    AudioBufUsed.release();
+    AudioBufUsed.release(length);
 
     emit dataProcessed(xs, ys);
 
 }
 
-void AudioPlotThread::onAudioFormatChanged(const AudioSettingFormat & format)
+void AudioPlotThread::onAudioFormatInit(const QString &rate, const QString &chns, const QString &size)
 {
-    audioFormat = format;
+    audioFormat.deviceName="";
+    audioFormat.codec="";
+    audioFormat.sampleRates.clear();
+    audioFormat.sampleSizes.clear();
+    audioFormat.sampleRates.append(rate);
+    audioFormat.sampleSizes.append(size);
+    audioFormat.channel = chns;
 }

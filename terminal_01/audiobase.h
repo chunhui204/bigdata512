@@ -15,9 +15,7 @@
 #define cout qDebug()<<__FILE__<<__LINE__<<":"
 
 const qint64 BufferDurationUs       = 1 * 1000000;// 单位： seconds
-const int    NotifyIntervalMs       = 500;
-
-const int    WaveplotDurationMs     =100;
+const int    NotifyIntervalMs       = 50;
 
 class AudioBase : public QObject
 {
