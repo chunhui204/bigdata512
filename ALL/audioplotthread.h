@@ -7,6 +7,7 @@
 #include <QTime>
 
 const int RefreshTime = 30; //ms
+const int PointNum = 1; //表示在RefreshTime时间内显示PointNum个点
 class AudioPlotThread : public QObject
 {
     Q_OBJECT

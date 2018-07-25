@@ -215,7 +215,7 @@ void MainWidget::onCommandIssued(QString command)
     QDataStream stream(&array, QIODevice::WriteOnly);
     if(command=="startAudio")
         stream << QString("startAudio");
-    else if(command=="startAudio")
+    else if(command=="stopAudio")
         stream << QString("stopAudio");
 
     tcpSocket->write(array);

@@ -53,7 +53,7 @@ void AudioDataThread::dataRecv()
         }
         AudioBufUsed.release(size - 4);
 
-        cout << "----------start----------"<<readBytes << totalSize;
+//        cout << "----------start----------"<<readBytes << totalSize;
     }
     else if(readBytes < totalSize)
     {
@@ -70,12 +70,12 @@ void AudioDataThread::dataRecv()
         }
 
         AudioBufUsed.release(size);
-        cout << "----------continue----------"<<readBytes << totalSize;
+//        cout << "----------continue----------"<<readBytes << totalSize;
     }
 
     if(readBytes == totalSize)
     {
-        cout<<"recv over"<<totalSize;
+//        cout<<"recv over"<<totalSize;
         readBytes = 0;
     }
 

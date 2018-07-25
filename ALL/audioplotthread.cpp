@@ -30,6 +30,10 @@ void AudioPlotThread::dataTranslation()
     //还未设置format
     if(audioFormat.channel.isNull())
         return;
+
+    static double last_time = 0;
+    static double now = 0;
+    static QTime time(QTime::currentTime());
     //释放空间
     xs.clear();
     QVector<double>().swap(xs);
@@ -38,35 +42,42 @@ void AudioPlotThread::dataTranslation()
 
     int length = audioFormat.channel.toInt() * audioFormat.sampleRates[0].toInt()
                 * RefreshTime/ 1000;
+    int interval = length / PointNum;
 //    length = qMin(length, AudioBufUsed.available());
 //考虑最后一段qcustomplot对于大小的vector如何都正常显示    ？？？？？？
     AudioBufUsed.acquire(length);
 
     qint16 tmp = 0;
-    double now = timeCount.elapsed() / 1000 / 60; //minutes
-    for(int i=0; i<length; i++)
-    {
-        xs.push_back(now + i * RefreshTime / 1000 / length);
+    last_time = now;
+    now = time.elapsed() /1000.0; //minutes
+    for(int i=0; i< PointNum; i++)
+    {//处理完PointNum个点正好RefreshTime，而RefreshTime时间后定时器再次中断继续处理下一个RefreshTime间隔的点。
+        xs.push_back(now + i * (RefreshTime / 1.0 / PointNum) / 1000.0);
         if(audioFormat.sampleSizes[0].toInt() == 8)
         {
             tmp = AudioBuffer[bufferpos];
-            double t = tmp/128.0;
-            ys.push_back(tmp / 128.0); //因为8位的范围-127~128，使曲线纵轴在[-1,1]
+            ys.push_back(AudioBuffer[bufferpos] / 1.0); //因为8位的范围-127~128，使曲线纵轴在[-1,1]
         }
         else if(audioFormat.sampleSizes[0].toInt() == 16)
         {
-            tmp = AudioBuffer[2*bufferpos]<<8 | AudioBuffer[2*bufferpos+1];
-            ys.push_back(tmp / 32768.0);//因为16位的范围-32767~32768
+            tmp = AudioBuffer[2*bufferpos+1]<<8 | AudioBuffer[2*bufferpos];
+            ys.push_back(tmp);//因为16位的范围-32767~32768
         }
         else
             ys.push_back(-1);//方便出错查找
 
-        bufferpos = (1 + bufferpos)%AudioBufSize;
+        bufferpos = (interval + bufferpos)%AudioBufSize;
     }
+    bufferpos += length % PointNum; // 保证bufferPos增加了length。
     AudioBufFree.release(length);
 
-//    cout << AudioBufUsed.available() << ys[0];
-    emit dataProcessed(xs, ys);
+    if(AudioBufUsed.available() > 0)
+    {
+//        cout << "now" << now << RefreshTime / 1000.0 << "code interval " << now + PointNum * (RefreshTime / 1.0 / PointNum) / 1000.0
+//             << "length" << length;
+    //    cout << AudioBufUsed.available() << ys[0];
+        emit dataProcessed(xs, ys);
+    }
 
 }
 

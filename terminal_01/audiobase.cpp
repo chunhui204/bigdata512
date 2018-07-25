@@ -28,7 +28,7 @@ void AudioBase::initializeAudio()
     // Set up the desired format, for example:
     format.setSampleRate(44100);
     format.setChannelCount(1);
-    format.setSampleSize(8);
+    format.setSampleSize(16);
     format.setCodec("audio/pcm");
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleType(QAudioFormat::UnSignedInt);
@@ -64,15 +64,24 @@ void AudioBase::initializeAudio()
             {
 
                 qint64 endpos = m_currentPosition;
+
+                cout << "value " << int(m_buffer->data()[1]<<8 | m_buffer->data()[0]);
+
                 if(m_tcpReadPosition < m_currentPosition)
+                {
+                    emit dataReadyEvent(m_buffer, m_tcpReadPosition, endpos);
+                    m_tcpReadPosition = m_currentPosition;
+                }
+                else if(m_tcpReadPosition > m_currentPosition)
                 {
                     //当缓冲数组存满时
                     endpos = m_totalLength;
+
+                    emit dataReadyEvent(m_buffer, m_tcpReadPosition, endpos);
                     m_tcpReadPosition = 0;
                 }
-                cout << "notify" << time.elapsed() - last;
                 last = time.elapsed();
-                emit dataReadyEvent(m_buffer, m_tcpReadPosition, endpos);
+
             }
         });
 
