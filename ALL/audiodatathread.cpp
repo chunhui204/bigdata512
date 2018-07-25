@@ -1,4 +1,4 @@
-#include "audiodatathread.h"
+﻿#include "audiodatathread.h"
 #include <QHostAddress>
 
 AudioDataThread::AudioDataThread(QObject *parent) : QObject(parent)
@@ -37,7 +37,7 @@ void AudioDataThread::dataRecv()
         //当然如果先转datastream再读出array的话就不用考虑这一点。
         totalSize += 4;
 
-        QByteArray array = socket->readAll();
+        QByteArray array = socket->read(totalSize);
         //do copy
         qint64 size = qMin(qint64(array.size()), totalSize);//防止包的数据量小，把下一个包的内容也读进来
         readBytes += size;
@@ -58,7 +58,7 @@ void AudioDataThread::dataRecv()
     else if(readBytes < totalSize)
     {
 
-        QByteArray array = socket->readAll();
+        QByteArray array = socket->read(totalSize - readBytes);
         qint64 size = qMin(qint64(array.size()), totalSize);
         readBytes += size;
 

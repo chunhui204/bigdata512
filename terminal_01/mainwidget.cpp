@@ -1,8 +1,8 @@
-#include "mainwidget.h"
+﻿#include "mainwidget.h"
 #include "ui_mainwidget.h"
 #include <QHostAddress>
 #include <QTime>
-
+#include <QMessageBox>
 
 MainWidget::MainWidget(QWidget *parent) :
     QWidget(parent),
@@ -15,6 +15,7 @@ MainWidget::MainWidget(QWidget *parent) :
     audioSocket = new QTcpSocket(this);
     audioBase = new AudioBase(this);
 
+    connect(audioBase, &AudioBase::audioError, this, &MainWidget::onAudioError);
     connect(commandSocket, &QTcpSocket::connected, this, &MainWidget::dealConnection);
     connect(commandSocket, &QTcpSocket::readyRead, this, &MainWidget::dealCommandResponse);
     connect(audioBase, &AudioBase::dataReadyEvent, this, &MainWidget::sendAudioData);
@@ -55,9 +56,7 @@ void MainWidget::dealConnection()
     //QString info = audioInfo + videoInfo;
 
     commandSocket->write(audioInfo);
-
-
-    func();
+//    func();
 }
 void MainWidget::sendAudioData(const QByteArray* buffer, qint64 startPos, qint64 endPos)
 {
@@ -65,28 +64,17 @@ void MainWidget::sendAudioData(const QByteArray* buffer, qint64 startPos, qint64
      * 消息流：
      * audioData _datasize _data
      */
-    cout<<"------------"<<endPos-startPos<<"------------"<<buffer->size();
     if(endPos < startPos)
     {
         return;
     }
-    char ch[endPos-startPos];
 
-    qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
-    for(int i=0;i<endPos-startPos;i++)
-    {
-        ch[i] = qrand()%256;
-    }
     QByteArray array;
-    QByteArray buffer_t(ch, endPos-startPos);
-//    QByteArray buffer_t(buffer->data()+startPos, endPos-startPos);
+    QByteArray buffer_t(buffer->data()+startPos, endPos-startPos);
     QDataStream stream(&array, QIODevice::WriteOnly);
 
-
     stream << endPos - startPos << buffer_t;
-    int ret = audioSocket->write(array);
-    cout<<"------"<<ret;
-    QThread::sleep(1);
+    audioSocket->write(array);
 
 }
 //解析服务器响应
@@ -107,7 +95,7 @@ void MainWidget::dealCommandResponse()
     QString head;
 
     stream >> head;
-    cout<<stream;
+//    cout<<stream;
 
     if("resetAudioFormat" == head)
     {
@@ -128,6 +116,12 @@ void MainWidget::dealCommandResponse()
     }
 
 }
+void MainWidget::onAudioError(QString str)
+{
+    ui->textEdit->append(str);
+//    close();
+}
+
 void MainWidget::func()
 {
     qint64 startPos = 0;
@@ -139,7 +133,7 @@ void MainWidget::func()
     {
         return;
     }
-    char ch[endPos-startPos];
+    char ch[44100];
 
     qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
     for(int i=0;i<endPos-startPos;i++)

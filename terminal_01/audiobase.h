@@ -1,4 +1,4 @@
-#ifndef AUDIOBASE_H
+﻿#ifndef AUDIOBASE_H
 #define AUDIOBASE_H
 
 #include <QObject>
@@ -11,6 +11,7 @@
 #include <QList>
 #include <QDataStream>
 #include <QDebug>
+#include <QTime>
 
 #define cout qDebug()<<__FILE__<<__LINE__<<":"
 
@@ -32,6 +33,7 @@ public:
 //    char * buffer() const;
 signals:
     void dataReadyEvent(const QByteArray* ,qint64 startPos, qint64 endPos);
+    void audioError(QString str);
 public slots:
 
 private:
@@ -50,6 +52,8 @@ private:
     QAudioFormat m_format;
     QAudioInput *m_audioInput;
     QIODevice *audioIO;
+    QTime time;
+    int last;
 
 };
 

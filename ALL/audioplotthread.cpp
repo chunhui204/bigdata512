@@ -1,4 +1,6 @@
 ﻿#include "audioplotthread.h"
+#include <QDateTime>
+#include <QTime>
 
 AudioPlotThread::AudioPlotThread(QObject *parent) : QObject(parent)
 {
@@ -8,6 +10,7 @@ AudioPlotThread::AudioPlotThread(QObject *parent) : QObject(parent)
     connect(timer, &QTimer::timeout, this, &AudioPlotThread::dataTranslation);
     //50ms刷新一次
     timer->start(RefreshTime);
+    timeCount.start();
 }
 
 AudioPlotThread::~AudioPlotThread()
@@ -35,14 +38,15 @@ void AudioPlotThread::dataTranslation()
 
     int length = audioFormat.channel.toInt() * audioFormat.sampleRates[0].toInt()
                 * RefreshTime/ 1000;
-    length = qMin(length, AudioBufUsed.available());
+//    length = qMin(length, AudioBufUsed.available());
 //考虑最后一段qcustomplot对于大小的vector如何都正常显示    ？？？？？？
-    AudioBufFree.acquire(length);
+    AudioBufUsed.acquire(length);
 
     qint16 tmp = 0;
+    double now = timeCount.elapsed() / 1000 / 60; //minutes
     for(int i=0; i<length; i++)
     {
-        xs.push_back(i);
+        xs.push_back(now + i * RefreshTime / 1000 / length);
         if(audioFormat.sampleSizes[0].toInt() == 8)
         {
             tmp = AudioBuffer[bufferpos];
@@ -59,8 +63,9 @@ void AudioPlotThread::dataTranslation()
 
         bufferpos = (1 + bufferpos)%AudioBufSize;
     }
-    AudioBufUsed.release(length);
+    AudioBufFree.release(length);
 
+//    cout << AudioBufUsed.available() << ys[0];
     emit dataProcessed(xs, ys);
 
 }

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network multimedia
+QT += core gui network multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,11 +24,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwidget.cpp \
-    audiobase.cpp
+ mainwidget.cpp \
+ audiobase.cpp
 
-HEADERS  += mainwidget.h \
-    audiobase.h
+HEADERS += mainwidget.h \
+ audiobase.h
 
-FORMS    += mainwidget.ui
+FORMS += mainwidget.ui
 CONFIG += C++11

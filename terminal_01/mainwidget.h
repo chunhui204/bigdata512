@@ -28,6 +28,7 @@ private slots:
     void dealCommandResponse();
     void sendAudioData(const QByteArray*, qint64, qint64);
     void on_button_connect_clicked();
+    void onAudioError(QString str);
 
 
 private:

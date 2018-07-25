@@ -1,7 +1,9 @@
-#include "audiobase.h"
+﻿#include "audiobase.h"
 
 AudioBase::AudioBase(QObject *parent) : QObject(parent)
 {
+    time.start();
+    last = 0;
     initializeAudio();
 
 }
@@ -35,8 +37,15 @@ void AudioBase::initializeAudio()
     if (!info.isFormatSupported(format)) {
         qWarning() << "Default format not supported, trying to use the nearest.";
         format = info.nearestFormat(format);
+        if(info.deviceName().isEmpty())
+        {
+            emit audioError(QString("未找到麦克风设备，请插入设备后重启软件"));
+//            return;
+        }
     }
         m_format = format;
+        cout << m_format.channelCount()<<m_format.sampleRate()
+             <<m_format.sampleSize()<<m_format.codec()<< info.deviceName();
         //初始化缓冲
         m_totalLength = audioBufferLength(m_format);
         m_currentPosition = 0;
@@ -61,6 +70,8 @@ void AudioBase::initializeAudio()
                     endpos = m_totalLength;
                     m_tcpReadPosition = 0;
                 }
+                cout << "notify" << time.elapsed() - last;
+                last = time.elapsed();
                 emit dataReadyEvent(m_buffer, m_tcpReadPosition, endpos);
             }
         });

@@ -4,8 +4,9 @@
 #include <QObject>
 #include "common.h"
 #include <QTimer>
+#include <QTime>
 
-const int RefreshTime = 50; //ms
+const int RefreshTime = 30; //ms
 class AudioPlotThread : public QObject
 {
     Q_OBJECT
@@ -22,6 +23,7 @@ signals:
 private:
     int bufferpos;
     QTimer *timer;
+    QTime timeCount;
     //坐标
     QVector<double> xs;
     QVector<double> ys;

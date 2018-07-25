@@ -1,4 +1,4 @@
-#include "audiowidget.h"
+﻿#include "audiowidget.h"
 #include "ui_audiowidget.h"
 #include "common.h"
 
@@ -41,7 +41,7 @@ AudioWidget::~AudioWidget()
 
 void AudioWidget::onDataProcessed(const QVector<double> &xs, const QVector<double> &ys)
 {
-    cout<< ys[0];
+//    cout<<xs[0] << ys[0];
     ui->customPlot->graph(0)->setData(xs, ys);
     ui->customPlot->replot();
 }
