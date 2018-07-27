@@ -12,6 +12,7 @@
 #include <QDataStream>
 #include <QDebug>
 #include <QTime>
+#include <QAudioOutput>
 
 #define cout qDebug()<<__FILE__<<__LINE__<<":"
 
@@ -28,22 +29,23 @@ public:
 
     void startAudio();
     void stopAudio();
-    void resetAudioFormat(const QString & head);
 
 //    char * buffer() const;
 signals:
-    void dataReadyEvent(const QByteArray* ,qint64 startPos, qint64 endPos);
+    void dataReadyEvent(const QByteArray & ,qint64 startPos, qint64 endPos);
     void audioError(QString str);
 public slots:
+    void onAudioFormatChanged(const QString &,const QString &,const QString &,const QString &,const QString &);
 
 private:
     qint64 audioBufferLength(const QAudioFormat &format) const;
     void initializeAudio();
+    void initializeAudioInput();
 private slots:
     void audioDataReady();
 
 private:
-    QByteArray *m_buffer;
+    QByteArray m_buffer;
     //上位机读到的位置，当前数据长度，总长度
     qint64 m_tcpReadPosition;
     qint64 m_currentPosition;
@@ -51,10 +53,9 @@ private:
     //audio 设备
     QAudioFormat m_format;
     QAudioInput *m_audioInput;
+    QAudioDeviceInfo inputDevice;
     QIODevice *audioIO;
-    QTime time;
-    int last;
-
+    QAudioOutput *output;
 };
 
 #endif // AUDIOBASE_H

@@ -16,19 +16,19 @@ SOURCES += main.cpp\
     mainwidget.cpp \
     qcustomplot.cpp \
     audiosetting.cpp \
-    networkthread.cpp \
     audiowidget.cpp \
     audiodatathread.cpp \
-    audioplotthread.cpp
+    audioplotthread.cpp \
+    wavfile.cpp
 
 HEADERS += mainwidget.h \
     qcustomplot.h \
     audiosetting.h \
-    networkthread.h \
     audiowidget.h \
     audiodatathread.h \
     common.h \
-    audioplotthread.h
+    audioplotthread.h \
+    wavfile.h
 
 FORMS += mainwidget.ui \
     audiosetting.ui \

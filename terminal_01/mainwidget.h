@@ -26,7 +26,7 @@ public:
 private slots:
     void dealConnection();
     void dealCommandResponse();
-    void sendAudioData(const QByteArray*, qint64, qint64);
+    void sendAudioData(const QByteArray &, qint64, qint64);
     void on_button_connect_clicked();
     void onAudioError(QString str);
 
@@ -35,7 +35,8 @@ private:
     Ui::MainWidget *ui;
     QTcpSocket *commandSocket, *audioSocket;
     AudioBase *audioBase;
-
+signals:
+    void audioFormatChanged(const QString &,const QString &,const QString &,const QString &,const QString &);
 };
 
 #endif // MAINWIDGET_H

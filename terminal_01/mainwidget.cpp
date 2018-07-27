@@ -19,6 +19,8 @@ MainWidget::MainWidget(QWidget *parent) :
     connect(commandSocket, &QTcpSocket::connected, this, &MainWidget::dealConnection);
     connect(commandSocket, &QTcpSocket::readyRead, this, &MainWidget::dealCommandResponse);
     connect(audioBase, &AudioBase::dataReadyEvent, this, &MainWidget::sendAudioData);
+    connect(this, &MainWidget::audioFormatChanged, audioBase, &AudioBase::onAudioFormatChanged);
+
     connect(commandSocket, &QTcpSocket::disconnected,
             [=]()
             {
@@ -58,22 +60,16 @@ void MainWidget::dealConnection()
     commandSocket->write(audioInfo);
 //    func();
 }
-void MainWidget::sendAudioData(const QByteArray* buffer, qint64 startPos, qint64 endPos)
+void MainWidget::sendAudioData(const QByteArray& buffer, qint64 startPos, qint64 endPos)
 {
-    /*
-     * 消息流：
-     * audioData _datasize _data
-     */
-    if(endPos < startPos)
-    {
-        return;
-    }
-
     QByteArray array;
-    QByteArray buffer_t(buffer->data()+startPos, endPos-startPos);
+    QByteArray buffer_t(buffer.data()+startPos, endPos-startPos);
     QDataStream stream(&array, QIODevice::WriteOnly);
 
+    qint16* p = reinterpret_cast<qint16*>(buffer_t.data());
+//    cout << *p;
     stream << endPos - startPos << buffer_t;
+
     audioSocket->write(array);
 
 }
@@ -95,12 +91,15 @@ void MainWidget::dealCommandResponse()
     QString head;
 
     stream >> head;
-//    cout<<stream;
 
     if("resetAudioFormat" == head)
     {
         //更新audio配置
         ui->textEdit->append("更新配置成功");
+
+        QString device, rate, chn, byte, codec;
+        stream >> device >>rate >> chn >> byte >> codec;
+        emit audioFormatChanged(device, rate, chn, byte, codec);
     }
     else if("resetVideoFormat" == head)
     {

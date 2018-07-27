@@ -15,6 +15,9 @@
 #include <QThread>
 #include "audiodatathread.h"
 #include "audioplotthread.h"
+#include <QFileInfo>
+#include <QDir>
+#include <QFileDialog>
 
 namespace Ui {
 class MainWidget;
@@ -35,6 +38,8 @@ private slots:
 
 signals:
     void audioFormatInit(const QString &rate, const QString &chns, const QString &size);
+    void savePathChanged(const QString & dir);
+    void wavFileOpened(const QString &name);
 private:
     //ui
     Ui::MainWidget *ui;

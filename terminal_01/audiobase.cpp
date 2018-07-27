@@ -2,14 +2,11 @@
 
 AudioBase::AudioBase(QObject *parent) : QObject(parent)
 {
-    time.start();
-    last = 0;
     initializeAudio();
 
 }
 AudioBase::~AudioBase()
 {
-    delete m_buffer;
 }
 
 qint64 AudioBase::audioBufferLength(const QAudioFormat &format) const
@@ -25,68 +22,27 @@ void AudioBase::initializeAudio()
 {
     //初始化audioFormat
     QAudioFormat format;
-    // Set up the desired format, for example:
     format.setSampleRate(44100);
     format.setChannelCount(1);
     format.setSampleSize(16);
     format.setCodec("audio/pcm");
     format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleType(QAudioFormat::UnSignedInt);
+    format.setSampleType(QAudioFormat::SignedInt);
 
-    QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
-    if (!info.isFormatSupported(format)) {
+    inputDevice = QAudioDeviceInfo::defaultInputDevice();
+    if (!inputDevice.isFormatSupported(format)) {
         qWarning() << "Default format not supported, trying to use the nearest.";
-        format = info.nearestFormat(format);
-        if(info.deviceName().isEmpty())
+        format = inputDevice.nearestFormat(format);
+        if(inputDevice.deviceName().isEmpty())
         {
             emit audioError(QString("未找到麦克风设备，请插入设备后重启软件"));
-//            return;
         }
     }
         m_format = format;
         cout << m_format.channelCount()<<m_format.sampleRate()
-             <<m_format.sampleSize()<<m_format.codec()<< info.deviceName();
-        //初始化缓冲
-        m_totalLength = audioBufferLength(m_format);
-        m_currentPosition = 0;
-        m_tcpReadPosition = 0;
-        m_buffer = new QByteArray;
-        m_buffer->resize(m_totalLength);
+             <<m_format.sampleSize()<<m_format.codec()<< inputDevice.deviceName();
 
-   //初始化AudioInput
-        m_audioInput = new QAudioInput(m_format, this);
-        //设置通知间隔，每次来通知时通过网络向上位机发送数据
-        m_audioInput->setNotifyInterval(NotifyIntervalMs);
-        connect(m_audioInput, &QAudioInput::notify,
-                [=]()
-        {//如果有数据可以传输
-            if(m_tcpReadPosition != m_currentPosition)
-            {
-
-                qint64 endpos = m_currentPosition;
-
-                cout << "value " << int(m_buffer->data()[1]<<8 | m_buffer->data()[0]);
-
-                if(m_tcpReadPosition < m_currentPosition)
-                {
-                    emit dataReadyEvent(m_buffer, m_tcpReadPosition, endpos);
-                    m_tcpReadPosition = m_currentPosition;
-                }
-                else if(m_tcpReadPosition > m_currentPosition)
-                {
-                    //当缓冲数组存满时
-                    endpos = m_totalLength;
-
-                    emit dataReadyEvent(m_buffer, m_tcpReadPosition, endpos);
-                    m_tcpReadPosition = 0;
-                }
-                last = time.elapsed();
-
-            }
-        });
-
-    audioIO = NULL;
-
+        initializeAudioInput();
 
 }
 
@@ -97,13 +53,14 @@ void AudioBase::audioDataReady()
     qint64 freeLength = m_totalLength - m_currentPosition;
     dataLength = qMin(dataLength, freeLength);
 
+
     qint64 readLength = audioIO->read(
-                m_buffer->data()+m_currentPosition, dataLength);
+                m_buffer.data()+m_currentPosition, dataLength);
+
     if(readLength)
     {
         //如果读到了数据，则更新参数
         m_currentPosition += readLength;
-
         if(m_currentPosition >= m_totalLength)
         {
             //当缓冲数组满时，清空缓冲，从数组开始的地方覆盖数据
@@ -117,18 +74,82 @@ void AudioBase::startAudio()
 {
     audioIO = m_audioInput->start();
     //每次声卡采集到数据，IOdevice会受到新数据触发readyread信号。
-    //更新m_buffer
     connect(audioIO, &QIODevice::readyRead, this, &AudioBase::audioDataReady);
-
 }
 void AudioBase::stopAudio()
 {
     m_audioInput->stop();
     //清空buffer，重新采集
-    m_buffer->clear();
-    m_buffer->resize(m_totalLength);
+    m_buffer.clear();
+    m_buffer.resize(m_totalLength);
+    m_buffer.fill(0);
     m_currentPosition = 0;
     m_tcpReadPosition = 0;
+    audioIO = NULL;
+}
+
+void AudioBase::onAudioFormatChanged(const QString &device, const QString &rate, const QString &channel, const QString & byte, const QString &codec)
+{
+    stopAudio();
+    delete m_audioInput;
+
+    QAudioFormat format;
+    // Set up the desired format, for example:
+    format.setSampleRate(rate.toInt());
+    format.setChannelCount(channel.toInt());
+    format.setSampleSize(byte.toInt());
+    format.setCodec(codec);
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleType(QAudioFormat::SignedInt);
+
+    foreach(QAudioDeviceInfo de, QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
+        if(de.deviceName() == device)
+            inputDevice  = de;
+
+    if (!inputDevice.isFormatSupported(format)) {
+        qWarning() << "Default format not supported, trying to use the nearest.";
+        format = inputDevice.nearestFormat(format);
+
+        emit audioError(QString("音频设置与麦克风不匹配"));
+    }
+    m_format = format;
+    initializeAudioInput();
+}
+
+
+void AudioBase::initializeAudioInput()
+{
+    //初始化缓冲
+    m_totalLength = audioBufferLength(m_format);
+    m_currentPosition = 0;
+    m_tcpReadPosition = 0;
+    m_buffer.resize(m_totalLength);
+    m_buffer.fill(0);
+
+//初始化AudioInput
+    m_audioInput = new QAudioInput(inputDevice, m_format, this);
+    //设置通知间隔，每次来通知时通过网络向上位机发送数据
+    m_audioInput->setNotifyInterval(NotifyIntervalMs);
+    connect(m_audioInput, &QAudioInput::notify,
+            [=]()
+    {//如果有数据可以传输
+        if(m_tcpReadPosition != m_currentPosition)
+        {
+            if(m_tcpReadPosition < m_currentPosition)
+            {
+                emit dataReadyEvent(m_buffer, m_tcpReadPosition, m_currentPosition);
+                m_tcpReadPosition = m_currentPosition;
+            }
+            else if(m_tcpReadPosition > m_currentPosition)
+            {
+                //当缓冲数组存满时
+                emit dataReadyEvent(m_buffer, m_tcpReadPosition, m_totalLength);
+                m_tcpReadPosition = 0;
+            }
+        }
+    });
+
+    audioIO = NULL;
 }
 
 /* 获取音频设备信息（输入设备）
@@ -164,10 +185,10 @@ QByteArray AudioBase::audioInfoToTcp() const
         stream << s1;
         stream << QString("1");
 
+        //QT 的8位好像有问题，只使用16bit
         QStringList s2;
-        foreach (int ss, inDevice.supportedSampleSizes())
         {
-            s2.append(QString("%1").arg(ss));
+            s2.append(QString("%1").arg(16));
         }
         stream << s2;
         stream << inDevice.supportedCodecs()[0];

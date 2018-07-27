@@ -13,7 +13,7 @@ const quint16 COMMAND_PORT = 8888;
 const quint16 AUDIO_PORT = 8889;
 const quint16 VIDEO_PORT = 8890;
 
-const int AudioBufSize = 230400;
+const int AudioBufSize = 176400;
 
 //缓冲空闲大小和已使用大小作为信号量
 extern QSemaphore AudioBufFree;
@@ -30,5 +30,21 @@ typedef struct {
     QString codec;
 } AudioSettingFormat;
 
+/*
+ * 文件保存目录
+ * root目录下分
+ * --root
+ *      --AUDIO_PATH
+ *          --AUDIO_FILE_PATH
+ *          --AUDIO_TRAIN_PATH
+ *      --VIDEO_PATH
+ *          --VIDEO_AVI_PATH
+ *          --VIDEO_IMAGE_PATH
+ */
+const QString AUDIO_PATH = "audioData";
+const QString VIDEO_PATH = "videoData";
+const QString AUDIO_FILE_PATH = "wavefiles";
+const QString AUDIO_TRAIN_PATH = "trainfiles";
+//const QString
 #define cout qDebug()<<__FILE__<<__LINE__<<": "
 #endif // COMMON_H

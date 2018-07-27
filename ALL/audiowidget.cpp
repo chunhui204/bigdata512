@@ -13,7 +13,8 @@ AudioWidget::AudioWidget(QWidget *parent) :
     ui->customPlot->graph(0)->setPen(QPen(Qt::blue)); // line color blue for first graph
 //    ui->customPlot->graph(0)->setBrush(QBrush(QColor(0, 0, 255, 20))); // first graph will be filled with translucent blue
     //y周范围
-    ui->customPlot->yAxis->setRange(-32768, 32768);
+    ui->customPlot->yAxis->setRange(-1,1);//(-32768, 32768);
+    ui->customPlot->xAxis->setRange(0, 5, Qt::AlignLeft);
     QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
     timeTicker->setTimeFormat("%m:%s");
     ui->customPlot->xAxis->setTicker(timeTicker);
@@ -34,6 +35,14 @@ AudioWidget::AudioWidget(QWidget *parent) :
     ui->customPlot->axisRect(0)->setRangeZoom(Qt::Horizontal);
 
     ui->customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+
+    //其他初始化
+    saveDir = QDir::currentPath();
+
+    this->ui->button_audio_recordStart->setDisabled(true);
+    this->ui->button_audio_recordEnd->setDisabled(true);
+//    this->ui->button_audio_capEnd->setDisabled(true);
+//    this->ui->button_audio_capStart->setDisabled(false);
 }
 
 AudioWidget::~AudioWidget()
@@ -43,42 +52,76 @@ AudioWidget::~AudioWidget()
 
 void AudioWidget::onDataProcessed(const QVector<double> &xs, const QVector<double> &ys)
 {
-//    cout <<"size" << xs.size();
-//    for(int i=0; i< xs.size(); i++)
-//    {
-//        ui->customPlot->graph(0)->addData(xs[i], ys[i]);
-//        ui->customPlot->xAxis->setRange(xs[i], 8, Qt::AlignRight);
-//    }
-
-//    ui->customPlot->replot();
-
-    static QTime time(QTime::currentTime());
-    // calculate two new data points:
-    double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
-    static double lastPointKey = 0;
-    if (xs[0]-lastPointKey > 0.002) // at most add point every 2 ms
+    if(xs.isEmpty()== true)
+        ui->customPlot->graph(0)->setData(xs, ys); // 清空界面
+    else
     {
-        cout << "key" << xs[0] << "value" << ys[0];
-      // add data to lines:
-
-      ui->customPlot->graph(0)->addData(xs[0], ys[0]);
-      // rescale value (vertical) axis to fit the current data:
-      //ui->customPlot->graph(0)->rescaleValueAxis();
-      //ui->customPlot->graph(1)->rescaleValueAxis(true);
-      lastPointKey = xs[0];
+        for(int i=0; i< xs.size(); i++)
+        {
+            ui->customPlot->graph(0)->addData(xs[i], ys[i]);
+        }
+        ui->customPlot->xAxis->setRange(xs[0], 5, Qt::AlignHCenter);
     }
-    // make key axis range scroll with the data (at a constant range size of 8):
-    ui->customPlot->xAxis->setRange(xs[0], 8, Qt::AlignRight);
+
     ui->customPlot->replot();
 }
 
 void AudioWidget::on_button_audio_capStart_clicked()
 {
-    cout<<"start";
+//    this->ui->button_audio_capStart->setDisabled(true);
+    this->ui->button_audio_recordStart->setDisabled(false);
+    this->ui->button_audio_recordEnd->setDisabled(true);
+//    this->ui->button_audio_capEnd->setDisabled(false);
     emit commandIssued(QString("startAudio"));
 }
 
 void AudioWidget::on_button_audio_capEnd_clicked()
 {
+    this->ui->button_audio_recordStart->setDisabled(true);
+    this->ui->button_audio_recordEnd->setDisabled(true);
+//    this->ui->button_audio_capEnd->setDisabled(true);
+//    this->ui->button_audio_capStart->setDisabled(false);
+
+    emit recordStop();
     emit commandIssued(QString("stopAudio"));
+}
+
+void AudioWidget::on_button_audio_recordStart_clicked()
+{
+    this->ui->button_audio_recordStart->setDisabled(true);
+    this->ui->button_audio_recordEnd->setDisabled(false);
+    //拼接路径
+    qDir.cd(saveDir);
+//    cout << saveDir;
+    if(qDir.exists(AUDIO_PATH) == false)
+        qDir.mkdir(AUDIO_PATH);
+    qDir.cd(AUDIO_PATH);
+
+    if(qDir.exists(AUDIO_FILE_PATH) == false)
+        qDir.mkdir(AUDIO_FILE_PATH);
+    qDir.cd(AUDIO_FILE_PATH);
+
+    QDateTime date =QDateTime::currentDateTime();
+    QString name =qDir.absolutePath() + "/" + date.toString("yyyy-MM-dd-hh-mm") + ".wav";
+    emit recordStart(name);
+}
+
+void AudioWidget::on_button_audio_recordEnd_clicked()
+{
+    this->ui->button_audio_recordStart->setDisabled(false);
+    this->ui->button_audio_recordEnd->setDisabled(true);
+    emit recordStop();
+}
+void AudioWidget::onSavePathChanged(const QString &dir)
+{
+    qDir.cd(dir);
+
+    if(qDir.exists(AUDIO_PATH) == false)
+        qDir.mkdir(AUDIO_PATH);
+    qDir.cd(AUDIO_PATH);
+
+    if(qDir.exists(AUDIO_FILE_PATH) == false)
+        qDir.mkdir(AUDIO_FILE_PATH);
+    if(qDir.exists(AUDIO_TRAIN_PATH) == false)
+        qDir.mkdir(AUDIO_TRAIN_PATH);
 }

@@ -5,7 +5,7 @@
 
 QSemaphore AudioBufFree(AudioBufSize);
 QSemaphore AudioBufUsed;
-char AudioBuffer[AudioBufSize];
+char AudioBuffer[AudioBufSize] = {0};
 
 MainWidget::MainWidget(QWidget *parent) :
     QMainWindow(parent),
@@ -98,13 +98,28 @@ void MainWidget::designMenu(void)
             [=]()
     {
         //打开文件，将音频或视频且文件信息显示到音频曲线或视频窗口
+        QString name = QFileDialog::getOpenFileName(this, tr("请选择wav文件"), QDir::currentPath(),
+                                                    tr("AUDIO files (*.wav);; VIDEO files (*.avi)"));
+        cout << "name " <<name;
+        if(tcpSocket != NULL)
+        {
+            //关闭声音采集
+            QByteArray array;
+            QDataStream stream(&array, QIODevice::WriteOnly);
+            stream << QString("stopAudio");
+            tcpSocket->write(array);
+        }
+        //显示曲线
+        emit wavFileOpened(name);
     });
     //菜单栏，”文件“下”路径“
-    connect(actionOpen, &QAction::triggered,
+    connect(actionPath, &QAction::triggered,
             [=]()
     {
         //设置保存根路径，则音频文件或视频文件分别保存在下面的audio_database和video_database
-
+        QString dir = QFileDialog::getExistingDirectory(this, tr("请设置数据保存目录"), QDir::currentPath(),
+                                                        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+        emit savePathChanged(dir);
     });
 
     QAction *actionAudioFunc = menufunction->addAction(tr("音频"));
@@ -152,18 +167,23 @@ void MainWidget::connectUI()
     //音频数据后台处理线程通知绘图部件
     qRegisterMetaType<QVector<double>>("QVector<double>");
     connect(aplot_thread, &AudioPlotThread::dataProcessed, audioWidget, &AudioWidget::onDataProcessed);
-
+    connect(audioWidget, &AudioWidget::recordStart, aplot_thread, &AudioPlotThread::onRecordStart);
+    connect(audioWidget, &AudioWidget::recordStop, aplot_thread, &AudioPlotThread::onRecordStop);
+    connect(this, &MainWidget::wavFileOpened, aplot_thread, &AudioPlotThread::onWavFileOpened);
+    // 更新保存路径后通知需要保存文件的类
+    connect(this, &MainWidget::savePathChanged, audioWidget, &AudioWidget::onSavePathChanged);
 }
 //通知终端重置麦克风配置
 void MainWidget::onAudioFormatChanged(const AudioSettingFormat &format)
 {
-    QByteArray array;
-    QDataStream stream(&array, QIODevice::WriteOnly);
-    stream << "audioDeviceInfo" << format.deviceName << format.sampleRates[0]
-           << format.channel << format.sampleSizes[0] << format.codec;
-    tcpSocket->write(array);
-    //采集按钮可视
-    cout<<"重置";
+    if(tcpSocket != NULL)
+    {
+        QByteArray array;
+        QDataStream stream(&array, QIODevice::WriteOnly);
+        stream << QString("resetAudioFormat") << format.deviceName << format.sampleRates[0]
+               << format.channel << format.sampleSizes[0] << format.codec;
+        tcpSocket->write(array);
+    }
 }
 
 //处理命令网络接收数据
