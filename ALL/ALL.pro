@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     audiowidget.cpp \
     audiodatathread.cpp \
     audioplotthread.cpp \
-    wavfile.cpp
+    wavfile.cpp \
+    videowidget.cpp
 
 HEADERS += mainwidget.h \
     qcustomplot.h \
@@ -28,11 +29,13 @@ HEADERS += mainwidget.h \
     audiodatathread.h \
     common.h \
     audioplotthread.h \
-    wavfile.h
+    wavfile.h \
+    videowidget.h
 
 FORMS += mainwidget.ui \
     audiosetting.ui \
-    audiowidget.ui
+    audiowidget.ui \
+    videowidget.ui
 
 CONFIG += C++11
 

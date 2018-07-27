@@ -38,9 +38,7 @@ void AudioDataThread::dataRecv()
         totalSize += 4;
 
         QByteArray array = socket->read(totalSize);
-//        qint16 *p = reinterpret_cast<qint16 *>(array.data() + 4);
-//        cout << *p ;
-        //do copy
+         //do copy
         qint64 size = qMin(qint64(array.size()), totalSize);//防止包的数据量小，把下一个包的内容也读进来
         readBytes += size;
 
@@ -53,11 +51,7 @@ void AudioDataThread::dataRecv()
             //考虑等待所有使用任务的线程使用完缓存数据在从头覆盖，或双缓冲
             bufferpos = (bufferpos + 1) % AudioBufSize;
         }
-//        cout << int(*(array.data()+4));
-
         AudioBufUsed.release(size - 4);
-
-//        cout << "----------start----------"<<readBytes << totalSize;
     }
     else if(readBytes < totalSize)
     {
@@ -74,17 +68,9 @@ void AudioDataThread::dataRecv()
         }
 
         AudioBufUsed.release(size);
-//        cout << "----------continue----------"<<readBytes << totalSize;
     }
-
     if(readBytes == totalSize)
-    {
-//        cout<<"recv over"<<totalSize;
         readBytes = 0;
-    }
-
-
-
 }
 AudioDataThread::~AudioDataThread()
 {
