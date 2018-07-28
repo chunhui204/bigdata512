@@ -18,7 +18,7 @@ const int AudioBufSize = 176400;
 //缓冲空闲大小和已使用大小作为信号量
 extern QSemaphore AudioBufFree;
 extern QSemaphore AudioBufUsed;
-//缓冲数组
+//缓冲数组,如果没有缓冲显示方要每次等待接收到数据显示数据，会很卡；如果缓冲太大，延迟会比较高
 extern char AudioBuffer[AudioBufSize];
 
 //为麦克风设备信息结构体

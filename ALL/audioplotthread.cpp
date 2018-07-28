@@ -1,5 +1,4 @@
 ﻿#include "audioplotthread.h"
-#include <QDateTime>
 #include <QTime>
 
 AudioPlotThread::AudioPlotThread(QObject *parent) : QObject(parent)
@@ -35,7 +34,6 @@ void AudioPlotThread::dataTranslation()
     //还未设置format
     if(audioFormat.channelCount() == -1)
         return;
-
     //释放空间
     if(xs.size() > 0)
     {
@@ -47,14 +45,13 @@ void AudioPlotThread::dataTranslation()
         ys.clear();
         QVector<double>().swap(ys);
     }
-
 //    static QTime time = QTime::currentTime();
     static double now = 0;//time.elapsed() /1000.0;
     //显示时出现每段音频间有连线或不同时间段内分辨率不同都是因为横轴时间量有误
     //这里显示RefreshTime+50是尽快的显示做到实时效果，如果不加的话每段length取整会损失精度
     //，就是说每段显示的数据长度都比这个时间段该显示的少一点点时间长了会造成累计误差滞后严重。
     int length = audioFormat.channelCount() * audioFormat.sampleRate()
-            *audioFormat.sampleSize() / 8 * (RefreshTime+50)/ 1000 ;
+            *audioFormat.sampleSize() / 8 * (RefreshTime+5)/ 1000 ;
 
     length -= length % 2;
     Q_ASSERT(AudioBufUsed.available() % 2 == 0);

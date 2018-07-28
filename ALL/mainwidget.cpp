@@ -21,7 +21,7 @@ MainWidget::MainWidget(QWidget *parent) :
     ui->setupUi(this);
     //初始化变量
 
-
+    cout << "data thread: " << QThread::currentThreadId();
     adata_thread->moveToThread(audioThread);
     aplot_thread->moveToThread(aPlotThread);
 
