@@ -1,5 +1,6 @@
 #include "videodatathread.h"
 #include <QThread>
+#include <QTime>
 
 QList<QImage> VideoBuffer;
 const int VideoBufferSize = 10;
@@ -12,6 +13,8 @@ VideoDataThread::VideoDataThread(QObject *parent) : QObject(parent)
     totalsize = 0;
     image_array.clear();
 
+    time = QTime::currentTime();
+    time.start();
     videoSocket = NULL;
     videoServer = new QTcpServer(this);
     videoServer->listen(QHostAddress::Any, 8888);
@@ -22,11 +25,6 @@ VideoDataThread::VideoDataThread(QObject *parent) : QObject(parent)
                 videoSocket = videoServer->nextPendingConnection();
                 cout << videoSocket->peerAddress().toString()<<videoSocket->peerPort();
                 cout << QThread::currentThreadId();
-                connect(videoSocket, &QTcpSocket::readyRead,
-                        [=]()
-                {
-                    cout <<"data ready";
-                });
                 connect(videoSocket, &QTcpSocket::readyRead, this, &VideoDataThread::dataRecv);
             });
 
@@ -34,12 +32,19 @@ VideoDataThread::VideoDataThread(QObject *parent) : QObject(parent)
 }
 void VideoDataThread::dataRecv()
 {
-    cout <<"data ready";
+static double now = 0;
+static double last = 0;
+
     if(image_array.isNull())
     {
+        cout << now - last;
+        last = now;
+        now =  time.elapsed() / 1000.0;
+
         QByteArray array = videoSocket->read(sizeof(int));
         QDataStream stream(&array, QIODevice::ReadOnly);
         stream >> totalsize;
+        videoSocket->read(4);
 
         image_array = QByteArray(videoSocket->read(totalsize));
         if(image_array.size() == totalsize)
@@ -62,8 +67,10 @@ void VideoDataThread::dataRecv()
 }
 void VideoDataThread::arrayToImage(const QByteArray &array)
 {
-    QByteArray base64 = QByteArray::fromBase64(array);
-    QByteArray unc = qUncompress(base64);
+//    QByteArray base64 = QByteArray::fromBase64(array);
+//    cout << array;
+    QByteArray unc = qUncompress(array);
+//    cout << unc;
     QImage image;
     image.loadFromData(unc, "JPEG");
 
@@ -71,7 +78,7 @@ void VideoDataThread::arrayToImage(const QByteArray &array)
 
     if(VideoBuffer.size() == VideoBufferSize)
         VideoBuffer.pop_front();//队列满了，第一个元素出队
-    VideoBuffer.append(image);//append添加的是引用
+    VideoBuffer.append(image.copy());//append添加的是引用
     VideoBufUsed.release();
 }
 VideoDataThread::~VideoDataThread()

@@ -6,9 +6,8 @@
 #include <QCameraImageCapture>
 #include "videosurface.h"
 #include "videowidget.h"
-#include <QTcpSocket>
-#include <QBuffer>
-#include <QDataStream>
+#include <QThread>
+#include "videothread.h"
 
 namespace Ui {
 class MainWidget;
@@ -26,11 +25,12 @@ private:
     Ui::MainWidget *ui;
     QCamera *m_cam;
     VideoSurface *videoSurface;
-    QTcpSocket *videoSocket;
+    VideoThread *video_thread;
+    QThread *videoThread;
 
 private slots:
-    void onFramePresented(const QImage &);
     void on_pushButton_clicked();
+    void on_pushButton_2_clicked();
 };
 
 #endif // MAINWIDGET_H

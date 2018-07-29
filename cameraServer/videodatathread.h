@@ -9,6 +9,7 @@
 #include <QTcpSocket>
 #include <QImage>
 #include <QDebug>
+#include <QTime>
 
 #define cout qDebug()<<__FILE__<<__LINE__
 
@@ -37,6 +38,7 @@ private:
     QTcpSocket *videoSocket;
     QTcpServer *videoServer;
     QByteArray image_array;
+    QTime time;
 };
 
 #endif // VIDEODATATHREAD_H

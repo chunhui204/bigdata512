@@ -9,8 +9,10 @@ MainWidget::MainWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    videoSocket = new QTcpSocket(this);
 
+    videoThread = new QThread(this);
+    video_thread = new VideoThread;
+    video_thread->moveToThread(videoThread);
 
     QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
     foreach (const QCameraInfo &cameraInfo, cameras) {
@@ -21,8 +23,8 @@ MainWidget::MainWidget(QWidget *parent) :
     videoSurface = new VideoSurface(this);
     m_cam->setViewfinder(videoSurface);
 
-//    connect(videoSurface, &VideoSurface::framePresented, ui->widget, &VideoWidget::onFramePresented);
-    connect(videoSurface, &VideoSurface::framePresented, this, &MainWidget::onFramePresented);
+    connect(videoSurface, &VideoSurface::framePresented, ui->widget, &VideoWidget::onFramePresented);
+    connect(videoSurface, &VideoSurface::framePresented, video_thread, &VideoThread::onFramePresented);
     m_cam->start();
 
 }
@@ -30,48 +32,15 @@ MainWidget::MainWidget(QWidget *parent) :
 MainWidget::~MainWidget()
 {
     delete ui;
-    if(videoSocket->isValid())
-    {
-        videoSocket->disconnectFromHost();
-        videoSocket->close();
-    }
-}
-void MainWidget::onFramePresented(const QImage &image)
-{
-    if(videoSocket->isValid())
-    {
-        QByteArray byte;
-        QBuffer buf(&byte);
-
-        image.save(&buf,"JPEG");
-        QByteArray ss=qCompress(byte,1);
-        QByteArray vv=ss.toBase64();
-
-        QByteArray ba;
-        QDataStream out(&ba,QIODevice::WriteOnly);
-
-        //三个int变量，分别是图像宽高，尺寸
-        out << int(0) << vv;
-        out.device()->seek(0);
-        out<< vv.size();
-
-        cout << vv;
-        cout << vv.size() << ba.size();
-        videoSocket->write(ba);
-
-    }
 }
 
 void MainWidget::on_pushButton_clicked()
 {
-    videoSocket->connectToHost(QHostAddress(QString("127.0.0.1")), 8888);
+    videoThread->start();
+}
 
-    connect(videoSocket, &QTcpSocket::connected,
-            [=]()
-    {
-//        QByteArray arr;
-//        QDataStream stream(&arr, QIODevice::WriteOnly);
-//        stream <<"str";
-//        videoSocket->write(arr);
-    });
+void MainWidget::on_pushButton_2_clicked()
+{
+    videoThread->quit();
+    videoThread->wait();
 }

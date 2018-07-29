@@ -27,11 +27,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         mainwidget.cpp \
     videosurface.cpp \
-    videowidget.cpp
+    videowidget.cpp \
+    videothread.cpp
 
 HEADERS  += mainwidget.h \
     videosurface.h \
-    videowidget.h
+    videowidget.h \
+    videothread.h
 
 FORMS    += mainwidget.ui
 
