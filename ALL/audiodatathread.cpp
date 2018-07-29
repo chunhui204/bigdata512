@@ -38,10 +38,19 @@ void AudioDataThread::dataRecv()
         totalSize += 4;
 
         QByteArray array = socket->read(totalSize);
+<<<<<<< HEAD
         readBytes += array.size();
 
         AudioBufFree.acquire(array.size() - 4);//lock
         for(int i=4; i<array.size(); i++)
+=======
+         //do copy
+        qint64 size = qMin(qint64(array.size()), totalSize);//防止包的数据量小，把下一个包的内容也读进来
+        readBytes += size;
+
+        AudioBufFree.acquire(size - 4);//lock
+        for(int i=4; i<size; i++)
+>>>>>>> 6ddf93478dfe0a6562fc100d8a5c66927bb04af9
         {
             AudioBuffer[bufferpos] = *(array.data()+i);
             //循环队列，当缓冲数组满时从开始的地方覆盖原数据
@@ -49,22 +58,38 @@ void AudioDataThread::dataRecv()
             //考虑等待所有使用任务的线程使用完缓存数据在从头覆盖，或双缓冲
             bufferpos = (bufferpos + 1) % AudioBufSize;
         }
+<<<<<<< HEAD
         AudioBufUsed.release(array.size() - 4);
+=======
+        AudioBufUsed.release(size - 4);
+>>>>>>> 6ddf93478dfe0a6562fc100d8a5c66927bb04af9
     }
     else if(readBytes < totalSize)
     {
 
         QByteArray array = socket->read(totalSize - readBytes);
+<<<<<<< HEAD
         readBytes += array.size();
 
         AudioBufFree.acquire(array.size());//lock
         for(int i=0; i<array.size(); i++)
+=======
+        qint64 size = qMin(qint64(array.size()), totalSize);
+        readBytes += size;
+
+        AudioBufFree.acquire(size);//lock
+        for(int i=0; i<size; i++)
+>>>>>>> 6ddf93478dfe0a6562fc100d8a5c66927bb04af9
         {
             AudioBuffer[bufferpos] = *(array.data()+i);
             bufferpos = (bufferpos + 1) % AudioBufSize;
         }
 
+<<<<<<< HEAD
         AudioBufUsed.release(array.size());
+=======
+        AudioBufUsed.release(size);
+>>>>>>> 6ddf93478dfe0a6562fc100d8a5c66927bb04af9
     }
     if(readBytes == totalSize)
         readBytes = 0;

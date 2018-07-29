@@ -32,6 +32,7 @@ MainWidget::MainWidget(QWidget *parent) :
 MainWidget::~MainWidget()
 {
     delete ui;
+<<<<<<< HEAD
     if(commandSocket->isValid())
     {
         commandSocket->disconnectFromHost();
@@ -42,6 +43,12 @@ MainWidget::~MainWidget()
         audioSocket->disconnectFromHost();
         audioSocket->close();
     }
+=======
+    commandSocket->disconnectFromHost();
+    commandSocket->close();
+    audioSocket->disconnectFromHost();
+    audioSocket->close();
+>>>>>>> 6ddf93478dfe0a6562fc100d8a5c66927bb04af9
 }
 
 void MainWidget::on_button_connect_clicked()
@@ -76,8 +83,13 @@ void MainWidget::sendAudioData(const QByteArray& buffer, qint64 startPos, qint64
 //    cout << *p;
     stream << endPos - startPos << buffer_t;
 
+<<<<<<< HEAD
     if(audioSocket->isValid())
         audioSocket->write(array);
+=======
+    audioSocket->write(array);
+
+>>>>>>> 6ddf93478dfe0a6562fc100d8a5c66927bb04af9
 }
 //解析服务器响应
 /*
