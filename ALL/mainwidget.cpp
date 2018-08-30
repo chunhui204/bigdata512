@@ -180,6 +180,7 @@ void MainWidget::connectUI()
     qRegisterMetaType<QVector<int>>("QVector<int>");
     qRegisterMetaType<QVector<QString>>("QVector<QString>");
     connect(audioWidget, &AudioWidget::trainModel, asptrm_thread, &SpectrumThread::train_from_file);
+    qRegisterMetaType<Tensor>("Tensor");
     connect(asptrm_thread, &SpectrumThread::alreadyTrained, audioWidget, &AudioWidget::onAlreadyTrained);
     // 更新保存路径后通知需要保存文件的类
     connect(this, &MainWidget::savePathChanged, audioWidget, &AudioWidget::onSavePathChanged);
